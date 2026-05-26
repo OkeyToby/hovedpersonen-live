@@ -10,7 +10,7 @@ show.
 |------|----------------|---------|
 | Entertainment guest | Prepares cases, runs the app, reads host notes, manages points. | You |
 | Couple | Adds reveal comments, confirms answers, acts as jury. | `Reveal og jury` |
-| Story owner | Comes up and tells one short story from three things. | Selected guests |
+| Story owner | Comes up and tells one short story or reads the three options. | Selected guests |
 | Active team | Answers the current case first. | Assigned per case |
 | Other teams | Can steal after a wrong answer. | All non-active teams |
 
@@ -19,61 +19,63 @@ show.
 | Time | Task | Done when |
 |------|------|-----------|
 | 7-5 days before | Ask 3-5 guests for safe stories. | Each story has a guest and one memory. |
-| 4-3 days before | Choose three things or pictures per story. | The host can show or name all three. |
-| 2 days before | Enter teams, cases, questions, and answers. | Reload keeps the prepared content. |
-| 1 day before | Print host sheets and table sheets. | Paper backup is ready. |
+| 4-3 days before | Choose three things, photos, or option stories per case. | The host can show or name all three. |
+| 2 days before | Enter teams, cases, questions, answers, and reveal notes. | Reload keeps the prepared content. |
+| 1 day before | Print Værtark, Casekort, Rekvisitkort, and Holdark. | Paper layer is ready. |
 | Party day | Test screen, browser zoom, and first case. | `Start show` is readable from the room. |
 
 ## Case Fields
 
 | Field | Use it for | Good example |
 |-------|------------|--------------|
-| `Titel` | Short name for the case. | `Den forsvundne cykelnøgle` |
+| `Format` | Choose `Tre ting, én historie` or `Tre ting, tre historier`. | `Tre ting, tre historier` |
+| `Titel` | Short name for the case. | `Første besøg i køkkenet` |
 | `Aktivt hold` | Team that answers first. | `Bord 1` |
-| `Gæst der fortæller` | Guest who comes up. | `Lone` |
-| `Ting 1-3` | Objects, clues, or pictures. | `En gammel cykellygte` |
-| `Oplæsningsnote` | What the host says before the story. | `Kald Lone op...` |
-| `Spørgsmål til aktivt hold` | The question the team answers. | `Hvor lå cykelnøglen til sidst?` |
-| `Korrekt svar` | Answer shown in reveal. | `I Pouls jakkelomme` |
-| `Reveal-kommentar` | Warm punchline or memory note. | `Poul leder altid efter det, han allerede har på sig.` |
+| `Fortæller` | Guest who comes up or owns the story. | `Tobias` |
+| `Ting 1-3` | Objects, clues, or pictures for one-story cases. | `Køleskabsmagnet` |
+| `A/B/C historie` | Option stories for three-story cases. | `Han åbnede køleskabet.` |
+| `Værtsnote` | What the host says before the story. | `Tobias kommer op...` |
+| `Spørgsmål` | The question the team answers. | `Hvad gjorde Tobias først?` |
+| `Korrekt svar` | Answer shown in reveal. | `Han åbnede køleskabet.` |
+| `Reveal-note` | Landing note or memory comment. | `Direkte ind i familien og direkte i køleskabet.` |
 
 ## Show Loop
 
 ```text
-setup
+Producer
   -> Start show
-active_team
-  -> Korrekt (+2)       -> reveal
-  -> Forkert            -> steal
-  -> Reveal uden point  -> reveal
+Show / active_team
+  -> Rigtigt +2     -> reveal
+  -> Forkert        -> steal
+  -> Reveal         -> reveal
 steal
-  -> Stjæl point (+1)   -> reveal
+  -> Stjæl +1       -> reveal
 reveal
-  -> Næste              -> next active_team or finished
+  -> Næste          -> next active_team or finished
 finished
-  -> Print ark or Start forfra
+  -> Print or Start forfra
 ```
 
 ## Scoring
 
 | Action | Score change | Next phase |
 |--------|--------------|------------|
-| `Korrekt (+2)` | Active team gets 2 points. | `reveal` |
+| `Rigtigt +2` | Active team gets 2 points. | `reveal` |
 | `Forkert` with other teams | No immediate points. | `steal` |
-| `Stjæl point` | Stealing team gets 1 point. | `reveal` |
-| `Reveal uden point` | No score change. | `reveal` |
+| `Stjæl +1` | Stealing team gets 1 point. | `reveal` |
+| `Reveal` | No score change. | `reveal` |
 
 If there is only one team, a wrong answer goes directly to reveal because no
 other team can steal.
 
 ## Print Pack
 
-The print pack has two parts.
-
 | Sheet | Audience | Includes |
 |-------|----------|----------|
-| Host sheet | Entertainment guest | Case order, active team, story owner, clues, question, answer, reveal note, point rules. |
-| Table sheets | Teams | Case titles, answer lines, and point space. |
+| `Værtark` | Entertainment guest | Case order, active team, story owner, clues/options, question, answer, reveal note, point rules. |
+| `Casekort` | Host | Host prompt and live question for each case. |
+| `Rekvisitkort` | Host or helpers | Three things or labels per case. |
+| `Holdark` | Teams | Case titles, answer lines, and point space. |
 
 Print before leaving for the venue. The show can run from paper if the screen,
 projector, or browser setup fails.
@@ -86,9 +88,9 @@ Recommended setup:
 - Browser opened to `index.html`.
 - Screen or projector mirrored from the laptop.
 - Browser zoom tested so the active case is readable.
-- Printed host sheet beside the laptop.
-- Table sheets distributed before the first question.
-- Three things or pictures sorted in case order.
+- Printed `Værtark` beside the laptop.
+- `Holdark` distributed before the first question.
+- Three things, photos, or labels sorted in case order.
 
 ## Safety Rules
 
@@ -102,7 +104,7 @@ Recommended setup:
 
 | Problem | Recovery |
 |---------|----------|
-| Browser loses prepared data | Use printed sheets or re-enter from the host sheet. |
+| Browser loses prepared data | Use printed sheets or re-enter from `Værtark`. |
 | Screen is unreadable | Increase browser zoom or run from paper. |
 | A guest does not want to tell the story | Host reads the note and skips the guest performance. |
 | Only one team remains | Continue without steal points. |

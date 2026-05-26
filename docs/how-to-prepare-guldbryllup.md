@@ -9,8 +9,9 @@ finished, printable show.
 - The project folder on your computer.
 - A browser that can open `index.html`.
 - Names for the couple.
-- At least 3 table teams or family teams.
+- At least 2 table teams or family teams.
 - 3-5 short stories from selected guests.
+- Three objects, photos, or clue labels for each case.
 
 ## Steps
 
@@ -18,21 +19,19 @@ finished, printable show.
 
    Open [../index.html](../index.html) directly in your browser.
 
-   The setup screen should show three steps: `Festen`, `Historiekort`, and
-   `Kør og print`. The default path is meant to feel like filling in a host
-   sheet, not configuring a full quiz system.
+   The app opens in `Producer`. This is the preparation layer.
 
 2. Fill in the event.
 
-   In `Festen`, update:
+   In the event panel, update:
 
    - `Navn 1`
    - `Navn 2`
    - `Dato / note`
-   Open `Indstillinger for hold og ærespar` only if you need to change the team
-   model, the couple role, or the team names. Keep the default role
-   `Reveal og jury` unless you have agreed that the couple should compete on a
-   team.
+
+   Open `Hold og rolle` only if you need to change the team model, the couple
+   role, or the team names. Keep `Reveal og jury` unless you have agreed that
+   the couple should compete.
 
 3. Decide the teams.
 
@@ -43,55 +42,62 @@ finished, printable show.
    - `Bord 3`
 
    Rename the teams if the room is divided by family, friends, or sides of the
-   family. Keep at least two teams if you want `Stjæl point` to matter.
+   family. Keep at least two teams if you want `Stjæl +1` to matter.
 
-4. Collect stories before the party.
+4. Choose the format for each case.
 
-   Ask selected guests for short memories that point back to the couple. For
-   each story, collect:
+   Use `Tre ting, én historie` when one guest comes up and tells the real story
+   using three things.
 
-   - the guest who will tell it
-   - three things, objects, or pictures
-   - a host note for calling the guest up
-   - one question the active team must answer
-   - the correct answer
-   - a warm reveal comment
+   Use `Tre ting, tre historier` when the three things each point to a possible
+   story and the teams must guess which one actually happened.
 
-   Good stories are specific, safe, and short enough to tell in 60-90 seconds.
+5. Enter the cases.
 
-5. Enter the story cards.
+   In `Rundown`, select one case at a time. For each case, fill in:
 
-   In `Historiekort`, use the `Kort` tabs to focus on one story at a time. For
-   each case in the app, fill in:
-
+   - `Format`
+   - `Aktivt hold`
    - `Titel`
-   - `Gæst der fortæller`
-   - `Ting 1`, `Ting 2`, `Ting 3`
-   - `Oplæsningsnote`
-   - `Spørgsmål til aktivt hold`
+   - `Fortæller`
+   - three things or three option stories
+   - `Værtsnote`
+   - `Spørgsmål`
    - `Korrekt svar`
-   - `Reveal-kommentar`
+   - `Reveal-note`
 
-   Assign each case to the team that should answer first.
+   For `Tre ting, tre historier`, confirm exactly one `Korrekt` radio option is
+   selected.
 
-6. Check readiness and print the backup sheets.
+6. Check readiness.
 
-   In `Kør og print`, use `Klar til festen` to see whether stories, three things,
-   teams, and print backup are ready. Then click `Print ark`.
+   In `Klar til test`, confirm:
 
-   Print one host sheet for yourself and one table sheet for each team. The
-   table sheets make the show work even if the screen setup at the venue is
-   awkward.
+   - all cases have a storyteller, question, and answer
+   - all cases have three things/options
+   - the team count matches the room
+   - print sheets are available
 
-7. Rehearse once.
+7. Print the paper layer.
+
+   Open `Print` and inspect:
+
+   - `Værtark`
+   - `Casekort`
+   - `Rekvisitkort`
+   - `Holdark`
+
+   Print one host set for yourself. Print or prepare hold sheets for the teams.
+
+8. Rehearse once.
 
    Run through the first two cases before the party:
 
    1. Click `Start show`.
-   2. Mark one answer as `Korrekt (+2)`.
+   2. Mark one answer as `Rigtigt +2`.
    3. Click `Næste`.
    4. Mark one answer as `Forkert`.
-   5. Award `Stjæl point` to another team.
+   5. Award `Stjæl +1` to another team.
    6. Confirm `Reveal` and `Næste` feel natural.
 
 ## Verification
@@ -100,9 +106,9 @@ Before leaving for the party, confirm:
 
 - The browser reloads with your prepared names, teams, and cases.
 - The host sheet contains all correct answers.
-- The table sheets have answer lines.
+- The hold sheets have answer lines.
 - You can reach the first show screen by clicking `Start show`.
-- You have the three things or pictures for each story.
+- You have the three things, photos, or labels for each case.
 
 ## Troubleshooting
 
@@ -114,23 +120,23 @@ was restored.
 
 ### There is only one team
 
-The show still works, but `Stjæl point` is skipped because no other team can
-answer. Use at least two teams for a livelier room.
+The show still works, but steal is skipped because no other team can answer. Use
+at least two teams for a livelier room.
 
 ### The venue screen fails
 
-Use the printed host sheet and table sheets. Read the three things aloud and
+Use the printed host sheets and hold sheets. Read the three things aloud and
 track points manually.
 
 ### A story feels too private
 
-Replace it. The default tone is warm and family-friendly. The couple should feel
-central, not exposed.
+Replace it. The default tone is family-friendly. The couple should feel central,
+not exposed.
 
 ## Related
 
 - Use [reference-party-runbook.md](reference-party-runbook.md) on the party day.
 - Use [how-to-run-local.md](how-to-run-local.md) to verify the app before you
   leave for the venue.
-- Use [reference-app.md](reference-app.md) when editing the app data or state
+- Use [reference-app.md](reference-app.md) when editing app data or state
   behavior.

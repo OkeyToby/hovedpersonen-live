@@ -1,8 +1,13 @@
 (function () {
-  const STORAGE_KEY = 'hovedpersonen-live-guldbryllup-v1';
+  const STORAGE_KEY = 'hovedpersonen-live-guldbryllup-v2';
+  const FORMATS = ['one_story', 'three_stories'];
 
   function clone(value) {
     return JSON.parse(JSON.stringify(value));
+  }
+
+  function isObject(value) {
+    return value && typeof value === 'object' && !Array.isArray(value);
   }
 
   function makeInitialState(data) {
@@ -17,8 +22,18 @@
     };
   }
 
-  function isObject(value) {
-    return value && typeof value === 'object' && !Array.isArray(value);
+  function normalizeOptions(item) {
+    const source = Array.isArray(item.options) && item.options.length ? item.options : [];
+    const fromClues = [0, 1, 2].map((index) => ({
+      clue: item.clues?.[index] || `Ting ${index + 1}`,
+      story: index === 0 ? item.answer || '' : '',
+      isCorrect: index === 0,
+    }));
+    return (source.length ? source : fromClues).slice(0, 3).map((option, index) => ({
+      clue: option.clue || item.clues?.[index] || `Ting ${index + 1}`,
+      story: option.story || '',
+      isCorrect: Boolean(option.isCorrect),
+    }));
   }
 
   function normalizeData(data, fallback) {
@@ -28,6 +43,7 @@
     const candidateCases = Array.isArray(next.cases) && next.cases.length ? next.cases : base.cases || [];
     const sourceTeams = candidateTeams.filter(isObject).length ? candidateTeams.filter(isObject) : base.teams || [];
     const sourceCases = candidateCases.filter(isObject).length ? candidateCases.filter(isObject) : base.cases || [];
+
     next.event = {
       ...(isObject(base.event) ? base.event : {}),
       ...(isObject(next.event) ? next.event : {}),
@@ -40,9 +56,10 @@
     next.cases = sourceCases.map((item, index) => {
       const fallbackTeamId = next.teams[index % next.teams.length]?.id || '';
       const activeTeamId = next.teams.some((team) => team.id === item.activeTeamId) ? item.activeTeamId : fallbackTeamId;
-      return {
+      const normalized = {
         id: item.id || `case-${index + 1}`,
-        title: item.title || `Historie ${index + 1}`,
+        format: FORMATS.includes(item.format) ? item.format : 'one_story',
+        title: item.title || `Case ${index + 1}`,
         activeTeamId,
         storyOwner: item.storyOwner || '',
         clues: [0, 1, 2].map((clueIndex) => item.clues?.[clueIndex] || ''),
@@ -51,8 +68,22 @@
         answer: item.answer || '',
         revealNote: item.revealNote || '',
       };
+      normalized.options = normalizeOptions({ ...item, ...normalized });
+      if (!normalized.options.some((option) => option.isCorrect)) {
+        normalized.options[0].isCorrect = true;
+      }
+      return normalized;
     });
     return next;
+  }
+
+  function load() {
+    try {
+      const raw = window.localStorage.getItem(STORAGE_KEY);
+      return raw ? JSON.parse(raw) : null;
+    } catch (error) {
+      return null;
+    }
   }
 
   function createStore(seed) {
@@ -84,20 +115,11 @@
     return next;
   }
 
-  function load() {
-    try {
-      const raw = window.localStorage.getItem(STORAGE_KEY);
-      return raw ? JSON.parse(raw) : null;
-    } catch (error) {
-      return null;
-    }
-  }
-
   function save(store) {
     try {
       window.localStorage.setItem(STORAGE_KEY, JSON.stringify(store));
     } catch (error) {
-      // The app still works as a one-session prototype if storage is unavailable.
+      // The app still works for one session if storage is unavailable.
     }
   }
 
@@ -134,7 +156,7 @@
     const team = activeTeam(store);
     if (team) {
       team.score += 2;
-      store.state.lastScoreEvent = `${team.name} fik 2 point`;
+      store.state.lastScoreEvent = `${team.name} +2`;
     }
     store.state.phase = 'reveal';
     store.state.stealTeamId = '';
@@ -147,12 +169,12 @@
     if (!hasStealTeam) {
       store.state.phase = 'reveal';
       store.state.stealTeamId = '';
-      store.state.lastScoreEvent = 'Aktivt hold svarede forkert. Ingen andre hold kan stjæle point.';
+      store.state.lastScoreEvent = 'Forkert. Ingen steal mulig.';
       markCompleted(store);
       return store;
     }
     store.state.phase = 'steal';
-    store.state.lastScoreEvent = 'Aktivt hold svarede forkert. Andre kan stjæle 1 point.';
+    store.state.lastScoreEvent = 'Forkert. Steal åbent.';
     return store;
   }
 
@@ -161,7 +183,7 @@
     if (team) {
       team.score += 1;
       store.state.stealTeamId = teamId;
-      store.state.lastScoreEvent = `${team.name} stjal 1 point`;
+      store.state.lastScoreEvent = `${team.name} +1`;
     }
     store.state.phase = 'reveal';
     markCompleted(store);
@@ -205,6 +227,7 @@
 
   window.HLGame = {
     STORAGE_KEY,
+    FORMATS,
     createStore,
     save,
     reset,

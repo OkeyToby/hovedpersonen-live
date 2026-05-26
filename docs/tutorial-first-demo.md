@@ -1,7 +1,7 @@
 # Run Your First Hovedpersonen Live Demo
 
-This tutorial takes you from the project folder to a working golden-wedding game
-show demo.
+This tutorial takes you from the project folder to a working golden-wedding show
+demo using the current `Producer`, `Show`, and `Print` surfaces.
 
 ## What You Need
 
@@ -13,53 +13,71 @@ show demo.
 
 Open [../index.html](../index.html) in your browser.
 
-You should see the Hovedpersonen Live setup surface with editable event fields,
-one active story card, and a `Kør og print` readiness panel.
+You should see the `Producer` surface with:
 
-## Step 2: Prepare the Event
+- a `Rundown` list
+- one selected case editor
+- event fields
+- `Klar til test`
+- score chips
 
-Change the couple names and event note in `Festen`. The header and setup progress
-should update after each field change.
+This is the preparation layer. It is where you edit the show before the party.
 
-Open `Indstillinger for hold og ærespar` if you want to inspect the default team
-mode and couple role. Leave the defaults in place for the first demo.
+## Step 2: Edit the First Case
 
-## Step 3: Prepare Teams and Stories
+In `Rundown`, select the first case: `Første besøg i køkkenet`.
 
-Use the `Kort` tabs in `Historiekort` to select one case. Edit:
+Change one or two fields:
 
-- title
-- story owner
-- three clues
-- host prompt
-- question
-- correct answer
-- reveal note
+- `Fortæller`
+- `Ting 1`, `Ting 2`, `Ting 3`
+- `Spørgsmål`
+- `Korrekt svar`
+- `Reveal-note`
 
-Reload the page and confirm your edits are still there.
+Reload the page. Your edits should still be there because the app saves to
+`localStorage`.
 
-Check `Klar til festen` in `Kør og print`. The counts should reflect the stories,
-clue cards, teams, and print backup.
+## Step 3: Try Both Case Formats
+
+Select case 2 in `Rundown`.
+
+It uses `Tre ting, tre historier`, where each option has:
+
+- one thing
+- one possible story
+- one radio button for the correct option
+
+Confirm exactly one `Korrekt` option is selected.
 
 ## Step 4: Run the Show
 
 Click `Start show`.
 
-1. On the first case, click `Korrekt (+2)`.
-2. Click `Næste`.
-3. On the next case, click `Forkert`.
-4. Award steal to another team.
-5. Click `Næste` until the final scoreboard appears.
+1. On the first case, click `Rigtigt +2`.
+2. Confirm the reveal shows the correct answer.
+3. Click `Næste`.
+4. On the next case, click `Forkert`.
+5. Award `Stjæl +1` to another team.
+6. Click `Næste` until the scoreboard appears.
 
-## Step 5: Print Backup Sheets
+## Step 5: Check Print
 
-Click `Print ark` and inspect print preview. The print version should show host
-sheets and table sheets instead of the interactive app.
+Open `Print`.
+
+Confirm you can see:
+
+- `Værtark`
+- `Casekort`
+- `Rekvisitkort`
+- `Holdark`
+
+Click `Åbn print` if you want to inspect browser print preview.
 
 ## What You Built
 
-You have run the static, paper-first golden-wedding prototype. It is ready for a
-real-room rehearsal without mobile participation, backend setup, or accounts.
+You have run the static, paper-first golden-wedding prototype. You now have a
+rehearsable show with a preparation layer, a big-screen layer, and paper sheets.
 
 ## Next
 

@@ -1,24 +1,28 @@
 # Hovedpersonen Live
 
 Hovedpersonen Live is a static, paper-first game show prototype for a golden
-wedding. It helps the entertainment guest prepare and run a reusable party
-format built around `Tre ting, en historie`: selected guests tell short stories,
-one team answers first, other teams can steal, and the couple acts as reveal or
-jury.
+wedding. It is built for the entertainment guest who needs a reusable party
+format with a preparation layer, a big-screen show layer, and practical print
+sheets.
+
+The current V1 centers on `Tre ting`:
+
+- `Tre ting, én historie`: one guest tells the real story through three objects.
+- `Tre ting, tre historier`: three object/story options are shown, but only one
+  is correct.
 
 The app has no build step, package manager, backend, account system, room codes,
-mobile answer flow, or real multiplayer. It is designed to run directly from
-`index.html` and save preparation data in `localStorage`.
+mobile answer flow, or real multiplayer. It runs directly from `index.html` and
+saves preparation data in `localStorage`.
 
 ## Quick Start
 
 1. Open [index.html](index.html) in a browser.
-2. Work through the guided setup: `Festen`, `Historiekort`, then `Kør og print`.
-3. Keep team and couple-role details in `Indstillinger for hold og ærespar`
-   unless the default table-team setup is enough.
-4. Click `Start show` and run the turn-based show from the big-screen stage.
-5. Use `Print ark` to print host sheets and table answer sheets.
-6. Use [QA.md](QA.md) to verify the current prototype behavior.
+2. Use `Producer` to edit event details, teams, cases, clues, stories, answers,
+   and reveal notes.
+3. Use `Show` or `Start show` for the big-screen party view.
+4. Use `Print` for `Værtark`, `Casekort`, `Rekvisitkort`, and `Holdark`.
+5. Use [QA.md](QA.md) to verify the current prototype behavior.
 
 ## Documentation
 
@@ -41,7 +45,7 @@ index.html        Static entry point with classic scripts.
 src/content.js    Golden-wedding seed template and example cases.
 src/game.js       Local game state, scoring, phases, and storage helpers.
 src/app.js        Rendering and DOM event binding.
-src/styles.css    Visual system, responsive layout, and print rules.
+src/styles.css    Producer, show, responsive, and print styles.
 docs/             Diataxis documentation.
 QA.md             Manual test checklist.
 DESIGN.md         Design system and UI decision source of truth.
@@ -51,19 +55,17 @@ DESIGN.md         Design system and UI decision source of truth.
 
 The prototype includes:
 
-- Guided three-step setup for the event, one active story card, and print/show
-  readiness.
-- Golden-wedding template with couple names, event note, tone, team mode, and
-  couple role.
-- Team setup with point editing and presets for bordhold, Brud mod Gom, and
-  free teams.
-- Editable `Tre ting, en historie` cases with story owner, three clues, prompt,
-  question, correct answer, and reveal note.
-- Deterministic show loop: setup, active team, wrong-answer steal, reveal, next
-  turn, finished scoreboard.
+- `Producer`, `Show`, and `Print` surfaces.
+- Golden-wedding template with couple names, event note, team mode, and couple
+  role.
+- Team setup with point editing and presets for table teams, bride/groom teams,
+  and free teams.
+- Editable `Tre ting, én historie` and `Tre ting, tre historier` cases.
+- Deterministic show loop: setup, active team, steal, reveal, next turn, finished
+  scoreboard.
 - Manual scoring: active team +2, steal +1.
 - `localStorage` persistence for preparation data.
-- Print CSS for host sheets and table answer sheets.
+- Print sheets for host, cases, props, and teams.
 
 The prototype intentionally does not include:
 
@@ -79,4 +81,4 @@ classic scripts instead of JavaScript modules so local `file://` loading works i
 normal browsers.
 
 Read [DESIGN.md](DESIGN.md) before changing layout, typography, colors, motion,
-or interaction states.
+copy, or interaction states.

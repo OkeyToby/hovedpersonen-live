@@ -1,14 +1,14 @@
-# How to Collect Story Cards
+# How to Collect Story Cases
 
-This guide helps you gather the raw material for `Tre ting, én historie` before
-you enter anything in the app.
+This guide helps you gather the raw material for `Tre ting` before you enter
+anything in the app.
 
 ## Prerequisites
 
 - Names for the couple.
 - A list of 4-6 guests who know safe, specific stories.
 - A way to contact those guests before the party.
-- The app available locally so you can enter finished cards later.
+- The app available locally so you can enter finished cases later.
 
 ## Steps
 
@@ -37,20 +37,37 @@ you enter anything in the app.
    Historien skal være familievenlig og kunne fortælles på 60-90 sekunder.
    ```
 
-3. Turn each answer into one card.
+3. Choose the case format.
 
-   For every usable story, fill this worksheet:
+   Use this worksheet for `Tre ting, én historie`:
 
    ```text
    Titel:
-   Gæst der fortæller:
+   Fortæller:
    Ting 1:
    Ting 2:
    Ting 3:
-   Oplæsningsnote:
-   Spørgsmål til aktivt hold:
+   Værtsnote:
+   Spørgsmål:
    Korrekt svar:
-   Reveal-kommentar:
+   Reveal-note:
+   ```
+
+   Use this worksheet for `Tre ting, tre historier`:
+
+   ```text
+   Titel:
+   Fortæller:
+   A - ting:
+   A - historie:
+   B - ting:
+   B - historie:
+   C - ting:
+   C - historie:
+   Korrekt: A / B / C
+   Spørgsmål:
+   Korrekt svar:
+   Reveal-note:
    ```
 
 4. Check the three things.
@@ -79,31 +96,31 @@ you enter anything in the app.
 
    - `Hvor lå cykelnøglen til sidst?`
    - `Hvilken sang fik dem på dansegulvet?`
-   - `Hvor var kagen gemt?`
+   - `Hvad gjorde Tobias først i køkkenet?`
 
    Avoid questions that require private knowledge unless the clues make the
    answer guessable.
 
 6. Add the reveal note.
 
-   The reveal note is the warm landing after the guess. It can be:
+   The reveal note is the landing after the guess. It can be:
 
    - a short comment from the couple
    - a kind punchline
    - a memory detail the story owner should mention
    - a cue for applause, singing, or asking the couple to confirm
 
-7. Enter the cards in the app.
+7. Enter the cases in the app.
 
-   Open [../index.html](../index.html), go to `Historiekort`, and enter one card
-   at a time. Use `Tilføj kort` if you have more than the seed cases.
+   Open [../index.html](../index.html), stay in `Producer`, and select cases
+   from `Rundown`. Use `Tilføj case` if you have more than the seed cases.
 
 ## Verification
 
-Before party day, each card should pass this check:
+Before party day, each case should pass this check:
 
 - It has one named story owner.
-- It has exactly three usable things or pictures.
+- It has exactly three usable things or option stories.
 - It has one question with one correct answer.
 - It can be told in 60-90 seconds.
 - It feels warm if read aloud in front of the whole room.
@@ -121,7 +138,7 @@ Rewrite it toward warmth or drop it. The couple should feel central, not exposed
 
 ### You do not get enough stories
 
-Use couple trivia as a fallback. Keep the same card structure: three clues, one
+Use couple trivia as a fallback. Keep the same structure: three clues, one
 question, one answer, one reveal note.
 
 ### You only have photos, not objects
@@ -131,6 +148,6 @@ as one of the three things.
 
 ## Related
 
-- Enter finished cards with [how-to-prepare-guldbryllup.md](how-to-prepare-guldbryllup.md).
+- Enter finished cases with [how-to-prepare-guldbryllup.md](how-to-prepare-guldbryllup.md).
 - Run the room with [reference-party-runbook.md](reference-party-runbook.md).
 - Look up app fields in [reference-app.md](reference-app.md).

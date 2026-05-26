@@ -54,12 +54,14 @@ Confirm exactly one `Korrekt` option is selected.
 
 Click `Start show`.
 
-1. On the first case, click `Rigtigt +2`.
-2. Confirm the reveal shows the correct answer.
-3. Click `Næste`.
-4. On the next case, click `Forkert`.
-5. Award `Stjæl +1` to another team.
-6. Click `Næste` until the scoreboard appears.
+1. On the first case, click `Vis ting 1`.
+2. Click `Vis næste ting` twice, until all three things are visible.
+3. Click `Rigtigt +2`.
+4. Confirm the reveal shows the correct answer.
+5. Click `Næste`.
+6. On the next case, reveal all three options, then click `Forkert`.
+7. Award `Stjæl +1` to another team.
+8. Click `Næste` until the scoreboard appears.
 
 ## Step 5: Check Print
 

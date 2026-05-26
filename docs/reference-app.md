@@ -34,7 +34,7 @@ The app stores one local object with:
 | `event` | Occasion, couple names, event note, tone, team mode, and couple role. |
 | `teams` | Team id, name, and score. |
 | `cases` | Case title, format, active team, story owner, clues/options, prompt, question, answer, and reveal note. |
-| `state` | Current phase, active case, active team, steal target, completed cases, and latest score event. |
+| `state` | Current phase, active case, active team, steal target, visible clue count, completed cases, and latest score event. |
 
 ### Event
 
@@ -77,7 +77,7 @@ The app stores one local object with:
 | Surface | Rendered by | Purpose |
 |------|-------------|---------|
 | `Producer` | `producerView()` | Rundown, selected case editor, event setup, readiness, and score. |
-| `Show` | `showStage()` | Big-screen stage for active team, clues/options, reveal, steal, and scoreboard. |
+| `Show` | `showStage()` | Big-screen stage for active team, stepwise clue/option reveal, answer, steal, reveal, and scoreboard. |
 | `Print` | `printPreview()` | Værtark, Casekort, Rekvisitkort, and Holdark preview plus browser print action. |
 
 Advanced team and couple-role controls live inside `Hold og rolle` so the
@@ -99,6 +99,11 @@ The readiness checklist counts:
 | `steal` | Other teams can steal after a wrong answer. |
 | `reveal` | Correct answer, story owner context, and reveal note are shown. |
 | `finished` | Final scoreboard is shown. |
+
+Within `active_team`, `visibleClueCount` controls whether zero, one, two, or
+three clues/options are visible. The host advances it with `Vis ting 1` and
+`Vis næste ting`. Answer and reveal controls appear only when the count reaches
+three.
 
 ## Scoring
 
@@ -135,7 +140,7 @@ Event handling is attribute-driven:
 | `data-kind` | Distinguishes event, team, case, clue, and option field updates. |
 | `data-field` | Names the object field to update. |
 | `data-index` | Finds the team or case being edited. |
-| `data-action` | Dispatches host actions such as `view`, `start`, `correct`, `wrong`, `steal`, `next`, `finish`, and `print`. |
+| `data-action` | Dispatches host actions such as `view`, `start`, `show-clue`, `correct`, `wrong`, `steal`, `next`, `finish`, and `print`. |
 
 ## Print Surface
 

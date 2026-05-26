@@ -49,10 +49,11 @@ The show view is the primary product moment. It must feel like a TV quiz graphic
 - Full-screen or near-full-screen stage.
 - Large active team.
 - Case number and format in a top rail.
-- Three objects/clues as the visual anchor.
+- Three objects/clues as the visual anchor, revealed one at a time by the host.
 - Current question or story prompt centered and readable.
 - Score event visible, but not louder than the story.
 - Host controls fixed at the bottom and clearly separated from the stage.
+- Answer controls appear only after all three objects/clues have been shown.
 - Reveal state must change the visual language, not only the text.
 
 Show labels:

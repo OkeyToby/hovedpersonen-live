@@ -305,14 +305,16 @@
     if (!item) return emptyStage();
     const isSteal = store.state.phase === 'steal';
     const isReveal = store.state.phase === 'reveal';
+    const visibleClueCount = isReveal || isSteal ? 3 : Number(store.state.visibleClueCount) || 0;
+    const allCluesVisible = visibleClueCount >= 3;
     const progress = `${currentIndex() + 1}/${store.data.cases.length}`;
 
     return `
-      <section class="show-stage ${isReveal ? 'is-reveal' : ''}" aria-label="Show">
+      <section class="show-stage ${isReveal ? 'is-reveal' : ''} ${visibleClueCount === 0 && !isReveal ? 'is-awaiting-clue' : ''}" aria-label="Show">
         <div class="stage-rail">
           <span>${escapeHtml(phaseText())}</span>
           <span>Case ${escapeHtml(progress)}</span>
-          <span>${escapeHtml(formatLabel(item.format))}</span>
+          <span>${escapeHtml(formatLabel(item.format))} - ${escapeHtml(Math.min(visibleClueCount, 3))}/3</span>
         </div>
         <div class="stage-grid">
           <div class="team-card">
@@ -322,17 +324,17 @@
             <div class="score-line">${scoreLine()}</div>
           </div>
           <div class="story-card">
-            <span class="label">${isReveal ? 'Korrekt svar' : item.storyOwner || 'Fortæller'}</span>
-            <h2>${escapeHtml(isReveal ? item.answer : item.question)}</h2>
-            ${item.format === 'three_stories' ? optionStage(item, isReveal) : clueStage(item)}
-            <p class="story-prompt">${escapeHtml(isReveal ? item.revealNote : item.prompt)}</p>
+            <span class="label">${escapeHtml(stageLabel(item, isReveal, allCluesVisible))}</span>
+            <h2>${escapeHtml(stageHeadline(item, isReveal, allCluesVisible))}</h2>
+            ${item.format === 'three_stories' ? optionStage(item, isReveal, visibleClueCount) : clueStage(item, visibleClueCount)}
+            <p class="story-prompt">${escapeHtml(stagePrompt(item, isReveal, allCluesVisible, visibleClueCount))}</p>
           </div>
         </div>
         ${isSteal ? stealPanel() : ''}
         <div class="host-controls">
           ${store.state.phase === 'setup' ? '<button class="primary" data-action="start">Start show</button>' : ''}
-          ${store.state.phase !== 'setup' && !isReveal && !isSteal ? '<button class="success" data-action="correct">Rigtigt +2</button><button class="danger" data-action="wrong">Forkert</button>' : ''}
-          ${store.state.phase !== 'setup' && !isReveal ? '<button class="secondary" data-action="reveal">Reveal</button>' : ''}
+          ${store.state.phase !== 'setup' && !isReveal && !isSteal && !allCluesVisible ? `<button class="primary" data-action="show-clue">${visibleClueCount === 0 ? 'Vis ting 1' : 'Vis næste ting'}</button>` : ''}
+          ${store.state.phase !== 'setup' && !isReveal && !isSteal && allCluesVisible ? '<button class="success" data-action="correct">Rigtigt +2</button><button class="danger" data-action="wrong">Forkert</button><button class="secondary" data-action="reveal">Reveal</button>' : ''}
           ${isReveal ? '<button class="primary" data-action="next">Næste</button>' : ''}
           ${store.state.phase !== 'setup' ? '<button class="secondary" data-action="finish">Afslut</button>' : ''}
         </div>
@@ -340,24 +342,47 @@
     `;
   }
 
-  function clueStage(item) {
+  function stageLabel(item, isReveal, allCluesVisible) {
+    if (isReveal) return 'Korrekt svar';
+    if (!allCluesVisible) return item.storyOwner || 'Fortæller';
+    return 'Spørgsmål';
+  }
+
+  function stageHeadline(item, isReveal, allCluesVisible) {
+    if (isReveal) return item.answer;
+    if (allCluesVisible) return item.question;
+    return item.title;
+  }
+
+  function stagePrompt(item, isReveal, allCluesVisible, visibleClueCount) {
+    if (isReveal) return item.revealNote;
+    if (allCluesVisible) return item.prompt;
+    if (visibleClueCount === 0) return 'Klar til første ting.';
+    return item.prompt;
+  }
+
+  function clueStage(item, visibleClueCount) {
+    const visible = item.clues.slice(0, visibleClueCount);
     return `
-      <div class="clue-grid">
-        ${item.clues.map((clue, index) => `<div><span>${index + 1}</span><strong>${escapeHtml(clue)}</strong></div>`).join('')}
+      <div class="clue-grid clue-count-${escapeHtml(visible.length)}">
+        ${visible.map((clue, index) => `<div><span>${index + 1}</span><strong>${escapeHtml(clue)}</strong></div>`).join('')}
+        ${visible.length === 0 ? '<div class="clue-placeholder"><span>1</span><strong>Klar</strong></div>' : ''}
       </div>
     `;
   }
 
-  function optionStage(item, isReveal) {
+  function optionStage(item, isReveal, visibleClueCount) {
+    const visible = item.options.slice(0, visibleClueCount);
     return `
-      <div class="choice-grid">
-        ${item.options.map((option, index) => `
+      <div class="choice-grid clue-count-${escapeHtml(visible.length)}">
+        ${visible.map((option, index) => `
           <div class="${isReveal && option.isCorrect ? 'correct' : ''}">
             <span>${String.fromCharCode(65 + index)}</span>
             <strong>${escapeHtml(option.clue)}</strong>
-            <p>${escapeHtml(option.story)}</p>
+            ${visibleClueCount >= 3 || isReveal ? `<p>${escapeHtml(option.story)}</p>` : ''}
           </div>
         `).join('')}
+        ${visible.length === 0 ? '<div class="clue-placeholder"><span>A</span><strong>Klar</strong></div>' : ''}
       </div>
     `;
   }
@@ -628,6 +653,7 @@
     if (action === 'correct') window.HLGame.markCorrect(store);
     if (action === 'wrong') window.HLGame.markWrong(store);
     if (action === 'reveal') window.HLGame.reveal(store);
+    if (action === 'show-clue') window.HLGame.showNextClue(store);
     if (action === 'next') window.HLGame.nextTurn(store);
     if (action === 'finish') window.HLGame.finish(store);
     if (action === 'print') window.print();
@@ -637,6 +663,7 @@
       if (item) {
         store.state.activeCaseId = item.id;
         store.state.activeTeamId = item.activeTeamId;
+        store.state.visibleClueCount = 0;
         if (store.state.phase !== 'setup') store.state.phase = 'active_team';
       }
     }
@@ -672,12 +699,14 @@
       store.data.cases.push(item);
       store.state.activeCaseId = item.id;
       store.state.activeTeamId = item.activeTeamId;
+      store.state.visibleClueCount = 0;
     }
     if (action === 'remove-case' && store.data.cases.length > 1) {
       store.data.cases.splice(index, 1);
       if (!store.data.cases.some((item) => item.id === store.state.activeCaseId)) {
         store.state.activeCaseId = store.data.cases[0].id;
         store.state.activeTeamId = store.data.cases[0].activeTeamId;
+        store.state.visibleClueCount = 0;
       }
     }
     if (action === 'reset') {

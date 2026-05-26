@@ -17,6 +17,7 @@
       activeCaseId: firstCase ? firstCase.id : '',
       activeTeamId: firstCase ? firstCase.activeTeamId : '',
       stealTeamId: '',
+      visibleClueCount: 0,
       completedCaseIds: [],
       lastScoreEvent: '',
     };
@@ -105,6 +106,8 @@
       next.activeTeamId = activeCase?.activeTeamId || data.teams[0]?.id || '';
     }
     if (!data.teams.some((team) => team.id === next.stealTeamId)) next.stealTeamId = '';
+    next.visibleClueCount = Math.max(0, Math.min(3, Number(next.visibleClueCount) || 0));
+    if (next.phase === 'steal' || next.phase === 'reveal') next.visibleClueCount = 3;
     if (!Array.isArray(next.completedCaseIds)) next.completedCaseIds = [];
     next.completedCaseIds = next.completedCaseIds.filter((id) => data.cases.some((item) => item.id === id));
     next.lastScoreEvent = next.lastScoreEvent || '';
@@ -147,12 +150,14 @@
     store.state.activeCaseId = first.id;
     store.state.activeTeamId = first.activeTeamId;
     store.state.stealTeamId = '';
+    store.state.visibleClueCount = 0;
     store.state.completedCaseIds = [];
     store.state.lastScoreEvent = '';
     return store;
   }
 
   function markCorrect(store) {
+    store.state.visibleClueCount = 3;
     const team = activeTeam(store);
     if (team) {
       team.score += 2;
@@ -165,6 +170,7 @@
   }
 
   function markWrong(store) {
+    store.state.visibleClueCount = 3;
     const hasStealTeam = store.data.teams.some((team) => team.id !== store.state.activeTeamId);
     if (!hasStealTeam) {
       store.state.phase = 'reveal';
@@ -186,13 +192,21 @@
       store.state.lastScoreEvent = `${team.name} +1`;
     }
     store.state.phase = 'reveal';
+    store.state.visibleClueCount = 3;
     markCompleted(store);
     return store;
   }
 
   function reveal(store) {
     store.state.phase = 'reveal';
+    store.state.visibleClueCount = 3;
     markCompleted(store);
+    return store;
+  }
+
+  function showNextClue(store) {
+    const current = Math.max(0, Math.min(3, Number(store.state.visibleClueCount) || 0));
+    store.state.visibleClueCount = Math.min(3, current + 1);
     return store;
   }
 
@@ -202,12 +216,14 @@
     if (!next) {
       store.state.phase = 'finished';
       store.state.stealTeamId = '';
+      store.state.visibleClueCount = 0;
       return store;
     }
     store.state.phase = 'active_team';
     store.state.activeCaseId = next.id;
     store.state.activeTeamId = next.activeTeamId;
     store.state.stealTeamId = '';
+    store.state.visibleClueCount = 0;
     store.state.lastScoreEvent = '';
     return store;
   }
@@ -215,6 +231,7 @@
   function finish(store) {
     store.state.phase = 'finished';
     store.state.stealTeamId = '';
+    store.state.visibleClueCount = 0;
     return store;
   }
 
@@ -239,6 +256,7 @@
     markWrong,
     awardSteal,
     reveal,
+    showNextClue,
     nextTurn,
     finish,
   };

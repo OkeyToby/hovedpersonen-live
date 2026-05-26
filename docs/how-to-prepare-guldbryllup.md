@@ -94,11 +94,14 @@ finished, printable show.
    Run through the first two cases before the party:
 
    1. Click `Start show`.
-   2. Mark one answer as `Rigtigt +2`.
-   3. Click `Næste`.
-   4. Mark one answer as `Forkert`.
-   5. Award `Stjæl +1` to another team.
-   6. Confirm `Reveal` and `Næste` feel natural.
+   2. Click `Vis ting 1`.
+   3. Click `Vis næste ting` twice.
+   4. Mark one answer as `Rigtigt +2`.
+   5. Click `Næste`.
+   6. Reveal all three things/options on the next case.
+   7. Mark one answer as `Forkert`.
+   8. Award `Stjæl +1` to another team.
+   9. Confirm `Reveal` and `Næste` feel natural.
 
 ## Verification
 

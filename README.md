@@ -11,6 +11,10 @@ The current V1 centers on `Tre ting`:
 - `Tre ting, tre historier`: three object/story options are shown, but only one
   is correct.
 
+In the show layer, the three objects/options are revealed one at a time by the
+host. The question and scoring controls appear only after all three have been
+shown.
+
 The app has no build step, package manager, backend, account system, room codes,
 mobile answer flow, or real multiplayer. It runs directly from `index.html` and
 saves preparation data in `localStorage`.
@@ -61,8 +65,8 @@ The prototype includes:
 - Team setup with point editing and presets for table teams, bride/groom teams,
   and free teams.
 - Editable `Tre ting, én historie` and `Tre ting, tre historier` cases.
-- Deterministic show loop: setup, active team, steal, reveal, next turn, finished
-  scoreboard.
+- Deterministic show loop: setup, active team, clue reveal 1-3, answer/steal,
+  reveal, next turn, finished scoreboard.
 - Manual scoring: active team +2, steal +1.
 - `localStorage` persistence for preparation data.
 - Print sheets for host, cases, props, and teams.

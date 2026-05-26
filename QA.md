@@ -33,15 +33,20 @@ review.
 ## Full Show Loop
 
 - [ ] Click `Start show` and confirm the big-screen stage shows the first active
-      team, three clues/options, prompt, and question.
-- [ ] Click `Rigtigt +2` and confirm the active team gains 2 points and the
-      stage enters reveal.
+      team and no revealed clue yet.
+- [ ] Click `Vis ting 1` and confirm only the first clue/option is visible.
+- [ ] Click `Vis næste ting` and confirm exactly two clues/options are visible.
+- [ ] Click `Vis næste ting` again and confirm all three clues/options are
+      visible and `Rigtigt +2`, `Forkert`, and `Reveal` appear.
+- [ ] Click `Rigtigt +2` and confirm the active team gains 2 points, all three
+      clues/options remain visible, and the stage enters reveal.
 - [ ] Click `Næste` and confirm the next case starts with its assigned active
-      team.
+      team and resets to zero visible clues/options.
 - [ ] Click `Forkert` and confirm steal controls appear for all other teams.
 - [ ] Award steal to another team and confirm that team gains 1 point and reveal
       appears.
-- [ ] Click `Reveal` on a later case and confirm no score changes.
+- [ ] Click `Reveal` on a later case after all three clues/options are visible
+      and confirm no score changes.
 - [ ] Advance through all cases and confirm the finished scoreboard appears.
 - [ ] Click `Afslut` from the show and confirm the final scoreboard appears.
 

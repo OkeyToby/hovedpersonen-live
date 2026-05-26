@@ -531,6 +531,18 @@ legend {
   gap: 10px;
 }
 
+.clue-grid.clue-count-0,
+.choice-grid.clue-count-0,
+.clue-grid.clue-count-1,
+.choice-grid.clue-count-1 {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.clue-grid.clue-count-2,
+.choice-grid.clue-count-2 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
 .clue-grid div,
 .choice-grid div {
   min-height: 120px;
@@ -538,6 +550,16 @@ legend {
   border-radius: 6px;
   padding: 14px;
   background: rgba(255, 248, 223, 0.08);
+}
+
+.clue-grid.clue-count-1 div,
+.choice-grid.clue-count-1 div {
+  min-height: 190px;
+}
+
+.clue-placeholder {
+  border-style: dashed !important;
+  color: var(--stage-muted);
 }
 
 .choice-grid div.correct {
@@ -585,6 +607,10 @@ legend {
 
 .show-stage.is-reveal .story-card h2 {
   color: #ffe19a;
+}
+
+.show-stage.is-awaiting-clue .story-card h2 {
+  color: var(--signal);
 }
 
 .steal-panel {

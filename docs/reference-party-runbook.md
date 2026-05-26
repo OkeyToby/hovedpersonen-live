@@ -19,7 +19,7 @@ show.
 | Time | Task | Done when |
 |------|------|-----------|
 | 7-5 days before | Ask 3-5 guests for safe stories. | Each story has a guest and one memory. |
-| 4-3 days before | Choose three things, photos, or option stories per case. | The host can show or name all three. |
+| 4-3 days before | Choose three things, photos, or option stories per case. | The host can show or name each one in order. |
 | 2 days before | Enter teams, cases, questions, answers, and reveal notes. | Reload keeps the prepared content. |
 | 1 day before | Print Værtark, Casekort, Rekvisitkort, and Holdark. | Paper layer is ready. |
 | Party day | Test screen, browser zoom, and first case. | `Start show` is readable from the room. |
@@ -45,6 +45,9 @@ show.
 Producer
   -> Start show
 Show / active_team
+  -> Vis ting 1
+  -> Vis næste ting
+  -> Vis næste ting
   -> Rigtigt +2     -> reveal
   -> Forkert        -> steal
   -> Reveal         -> reveal
@@ -60,6 +63,7 @@ finished
 
 | Action | Score change | Next phase |
 |--------|--------------|------------|
+| `Vis ting 1` / `Vis næste ting` | No score change. | `active_team` |
 | `Rigtigt +2` | Active team gets 2 points. | `reveal` |
 | `Forkert` with other teams | No immediate points. | `steal` |
 | `Stjæl +1` | Stealing team gets 1 point. | `reveal` |

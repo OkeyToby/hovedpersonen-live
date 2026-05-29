@@ -49,7 +49,7 @@ input:focus, textarea:focus, select:focus, summary:focus-visible {
 .secondary { background: white; }
 .success { background: var(--success); color: white; }
 .danger { background: var(--danger); color: white; }
-.ghost { min-height: 34px; background: transparent; color: var(--muted); }
+.ghost { min-height: 38px; background: transparent; color: var(--muted); }
 
 .app-shell {
   width: min(1480px, calc(100% - 32px));

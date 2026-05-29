@@ -695,6 +695,24 @@ textarea { min-height: 72px; resize: vertical; line-height: 1.4; }
   }
 }
 
+@media (max-width: 768px) {
+  .top-bar { flex-direction: column; align-items: stretch; }
+
+  .view-tabs button { flex: 1; }
+
+  .cat-board-count-3,
+  .cat-board-count-4,
+  .cat-board-count-5,
+  .cat-board-count-6,
+  .cat-board-count-7 {
+    grid-template-columns: 1fr;
+  }
+
+  .cat-board-count-7 .cat-tile:last-child { grid-column: span 1; }
+
+  .stage-rail { font-size: 0.85rem; }
+}
+
 /* ── PRINT MEDIA ──────────────────────────────────────────── */
 
 @media print {

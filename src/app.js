@@ -1,7 +1,21 @@
 (function () {
   let store = window.HLGame.createStore(window.HLContent.template);
-  let view = 'producer';
+  let view = loadView();
   let editorCatId = store.data.categories[0] ? store.data.categories[0].id : '';
+
+  // Restore the active surface across reloads so an accidental refresh
+  // mid-show doesn't drop the host onto the Producer view (which would
+  // expose every question and answer on a projected screen).
+  function loadView() {
+    try {
+      const raw = window.localStorage.getItem(window.HLGame.STORAGE_KEY);
+      const saved = raw ? JSON.parse(raw) : null;
+      const v = saved && saved.view;
+      return (v === 'producer' || v === 'show' || v === 'print') ? v : 'producer';
+    } catch (e) {
+      return 'producer';
+    }
+  }
 
   function esc(value) {
     return String(value == null ? '' : value)
@@ -13,6 +27,7 @@
   }
 
   function saveAndRender() {
+    store.view = view;
     window.HLGame.save(store);
     render();
   }

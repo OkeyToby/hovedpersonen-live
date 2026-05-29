@@ -1,87 +1,61 @@
 # Manual QA Checklist
 
-Use this checklist before calling the golden-wedding prototype ready for another
-review.
+Use this checklist before calling the årstalsquiz prototype ready for review.
 
 ## Static Load
 
-- [ ] Open `index.html` directly from disk.
-- [ ] Confirm the page title is `Hovedpersonen Live - Guldbryllup`.
-- [ ] Confirm the app renders without a local server and without module/CORS
-      errors.
+- [ ] Open `index.html` directly from disk (`file://`).
+- [ ] Confirm the page title is `Hovedpersonen Live — Årstalsquiz`.
+- [ ] Confirm the app renders without a local server and without module/CORS errors.
 
 ## Producer and Persistence
 
 - [ ] Confirm the top navigation has `Producer`, `Show`, and `Print`.
-- [ ] Confirm `Producer` opens with `Rundown`, one selected case editor, event
-      setup, readiness, and score.
-- [ ] Confirm team and couple-role controls are inside `Hold og rolle`.
-- [ ] Confirm `Klar til test` updates counts for cases, three things, teams, and
-      printark.
-- [ ] Change the two couple names and event note.
-- [ ] Select each holdmodel: `Bordhold`, `Brud mod gom`, `Frit antal hold`.
-- [ ] Select each couple role: `Reveal og jury`, `Hjælper på hold`, `Eget hold`.
-- [ ] Add a team, rename teams, change a score, and remove a non-final team.
-- [ ] Edit a `Tre ting, én historie` case title, story owner, three clues,
-      prompt, question, answer, and reveal note.
-- [ ] Switch a case to `Tre ting, tre historier` and edit all three option
-      stories plus the correct option.
-- [ ] Reload the browser and confirm the edited data is restored from
-      `localStorage`.
-- [ ] Click `Nulstil demo` and confirm seed data returns.
+- [ ] Confirm `Producer` opens with `Event`, `Hold` (inside `<details>`), `Kategorier`, `Finale`, and `Kørsel` sections.
+- [ ] Edit the year field and confirm the header year updates.
+- [ ] Edit the title field and confirm it saves.
+- [ ] Add a team, rename it, change its score, and remove a non-final team.
+- [ ] Confirm that removing the last team is blocked (`Fjern` hidden when only 1 team remains).
+- [ ] Add categories up to 7; confirm `Tilføj kategori` is hidden at the maximum.
+- [ ] Remove a category; confirm `Fjern` is hidden when only 3 categories remain.
+- [ ] Edit a category: fill in name, question, answer, and explanation.
+- [ ] Edit the Finale question and answer fields.
+- [ ] Reload the browser and confirm all edited data is restored from `localStorage`.
+- [ ] Click `Nulstil demo` and confirm a confirmation dialog appears before the reset.
+- [ ] Confirm seed data is restored after accepting the dialog.
 
 ## Full Show Loop
 
-- [ ] Click `Start show` and confirm the big-screen stage shows the first active
-      team and no revealed clue yet.
-- [ ] Click `Vis ting 1` and confirm only the first clue/option is visible.
-- [ ] Click `Vis næste ting` and confirm exactly two clues/options are visible.
-- [ ] Click `Vis næste ting` again and confirm all three clues/options are
-      visible and `Rigtigt +2`, `Forkert`, and `Reveal` appear.
-- [ ] Click `Rigtigt +2` and confirm the active team gains 2 points, all three
-      clues/options remain visible, and the stage enters reveal.
-- [ ] Click `Næste` and confirm the next case starts with its assigned active
-      team and resets to zero visible clues/options.
-- [ ] Click `Forkert` and confirm steal controls appear for all other teams.
-- [ ] Award steal to another team and confirm that team gains 1 point and reveal
-      appears.
-- [ ] Click `Reveal` on a later case after all three clues/options are visible
-      and confirm no score changes.
-- [ ] Advance through all cases and confirm the finished scoreboard appears.
-- [ ] Click `Afslut` from the show and confirm the final scoreboard appears.
-- [ ] Confirm the live score stays visible in the show view and marks the active
-      team.
-- [ ] Click `Bonus +1` for a team and confirm the score updates without changing
-      the current clue, steal, or reveal phase.
+- [ ] Click `Start show` and confirm the big-screen intro stage shows the year.
+- [ ] Click `Vis kategori-board` and confirm the category board appears with all categories as tiles.
+- [ ] Click a category tile and confirm the question appears with `Rigtigt +2`, `Forkert`, and `Reveal` controls.
+- [ ] Click `Rigtigt +2` and confirm the active team gains 2 points and the reveal stage appears.
+- [ ] Click `Reveal` and confirm the answer appears in the gold/Fraunces display style.
+- [ ] Click `Næste` and confirm the board returns with that category marked used.
+- [ ] Click `Forkert` on a later question and confirm no score is awarded.
+- [ ] Click `Bonus +1` for any team and confirm the score updates immediately.
+- [ ] Advance through all categories and confirm the finale stage appears automatically.
+- [ ] Award `+3` to a finale winner and confirm the finished scoreboard appears with the winner highlighted.
+- [ ] Click `Afslut` from the mid-show board and confirm the show ends on the finished scoreboard.
+- [ ] Reload mid-show and confirm the browser restores to `Show`, not `Producer`.
 
 ## Print
 
-- [ ] Open `Print` and confirm `Værtark`, `Casekort`, `Rekvisitkort`, and
-      `Holdark` are visible.
-- [ ] Click `Åbn print` and confirm print preview hides interactive UI.
-- [ ] Confirm `Værtark` includes case order, active team, story owner,
-      clues/options, question, answer, reveal note, and point rules.
-- [ ] Confirm `Holdark` includes answer lines and point space for each team.
+- [ ] Open `Print` and confirm both `Værtark` and `Holdark` are visible on screen.
+- [ ] Confirm `Værtark` lists all category questions with answers and explanations, the finale answer, and point rules (`+2 / +1 / +3`).
+- [ ] Confirm `Holdark` includes answer lines for each category and a score box.
+- [ ] Click `Åbn print` and confirm the print preview renders correctly.
 
 ## Escaping and Layout
 
-- [ ] Enter `<script>alert(1)</script>` in couple names, team names, clues,
-      option stories, story owner, prompt, question, answer, and reveal note.
+- [ ] Enter `<script>alert(1)</script>` in year, title, team names, category name, question, answer, and finale answer.
 - [ ] Confirm the text renders escaped and no script runs.
-- [ ] Resize below 390px and confirm Producer, Show, Print, and controls stack
-      without horizontal page overflow.
-
-## Snapshot
-
-- [ ] Open `.gstack/designs/hovedpersonen-live-in-app-20260526/finalized.html`
-      and confirm it matches the current app behavior.
+- [ ] Resize below 768px and confirm Producer, Show, Print, and all controls stack without horizontal overflow.
 
 ## Out of Scope
 
 These are intentionally not required for V1:
 
-- Mobile join flow.
-- Real-time answer submission.
-- Room codes.
-- Accounts or backend persistence.
-- Automated package scripts.
+- Mobile participation or answer submission.
+- Room codes, accounts, or backend persistence.
+- A package manager or build step.

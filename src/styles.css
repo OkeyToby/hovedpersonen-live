@@ -84,7 +84,7 @@ input:focus, textarea:focus, select:focus, summary:focus-visible {
   border-radius: 6px;
   background: var(--stage);
   color: var(--stage-ink);
-  font-family: Georgia, serif;
+  font-family: "Fraunces", Georgia, serif;
   font-weight: 900;
 }
 
@@ -256,7 +256,7 @@ textarea { min-height: 72px; resize: vertical; line-height: 1.4; }
   border-radius: 4px;
   background: var(--stage);
   color: var(--stage-ink);
-  font-family: Consolas, "IBM Plex Mono", monospace;
+  font-family: "IBM Plex Mono", Consolas, monospace;
   font-weight: 900;
 }
 
@@ -306,7 +306,7 @@ textarea { min-height: 72px; resize: vertical; line-height: 1.4; }
   border-bottom: 1px solid rgba(255, 248, 223, 0.16);
   background: rgba(255, 255, 255, 0.04);
   color: var(--stage-muted);
-  font-family: Consolas, "IBM Plex Mono", monospace;
+  font-family: "IBM Plex Mono", Consolas, monospace;
   font-weight: 900;
 }
 
@@ -350,7 +350,7 @@ textarea { min-height: 72px; resize: vertical; line-height: 1.4; }
   border-radius: 4px;
   background: rgba(255, 248, 223, 0.14);
   color: var(--stage-muted);
-  font-family: Consolas, "IBM Plex Mono", monospace;
+  font-family: "IBM Plex Mono", Consolas, monospace;
   font-weight: 900;
 }
 
@@ -364,7 +364,7 @@ textarea { min-height: 72px; resize: vertical; line-height: 1.4; }
 .live-score-row em {
   margin-left: auto;
   color: #ffe19a;
-  font-family: Consolas, "IBM Plex Mono", monospace;
+  font-family: "IBM Plex Mono", Consolas, monospace;
   font-style: normal;
   font-weight: 900;
 }
@@ -379,7 +379,7 @@ textarea { min-height: 72px; resize: vertical; line-height: 1.4; }
 .bonus-actions span {
   align-self: center;
   color: var(--stage-muted);
-  font-family: Consolas, "IBM Plex Mono", monospace;
+  font-family: "IBM Plex Mono", Consolas, monospace;
   font-size: 0.84rem;
   font-weight: 900;
   text-transform: uppercase;
@@ -410,7 +410,7 @@ textarea { min-height: 72px; resize: vertical; line-height: 1.4; }
 
 .team-card h1, .winner h1 {
   margin: 10px 0 16px;
-  font-family: Georgia, "Times New Roman", serif;
+  font-family: "Fraunces", Georgia, "Times New Roman", serif;
   font-size: clamp(3.4rem, 8vw, 7.2rem);
   line-height: 0.86;
 }
@@ -432,7 +432,7 @@ textarea { min-height: 72px; resize: vertical; line-height: 1.4; }
   padding: 12px 14px;
   background: rgba(215, 179, 90, 0.14);
   color: var(--stage-ink);
-  font-family: Consolas, "IBM Plex Mono", monospace;
+  font-family: "IBM Plex Mono", Consolas, monospace;
   font-weight: 900;
 }
 
@@ -448,7 +448,7 @@ textarea { min-height: 72px; resize: vertical; line-height: 1.4; }
 .story-card h2 {
   max-width: 980px;
   margin: 10px 0 24px;
-  font-family: Georgia, "Times New Roman", serif;
+  font-family: "Fraunces", Georgia, "Times New Roman", serif;
   font-size: clamp(2.2rem, 4.4vw, 4.8rem);
   line-height: 1.05;
 }
@@ -500,7 +500,7 @@ textarea { min-height: 72px; resize: vertical; line-height: 1.4; }
 
 .intro-year h1 {
   margin: 12px 0 16px;
-  font-family: Georgia, "Times New Roman", serif;
+  font-family: "Fraunces", Georgia, "Times New Roman", serif;
   font-size: clamp(7rem, 20vw, 18rem);
   line-height: 0.85;
   letter-spacing: -0.03em;
@@ -536,7 +536,7 @@ textarea { min-height: 72px; resize: vertical; line-height: 1.4; }
   padding: 18px;
   background: rgba(215, 179, 90, 0.1);
   color: var(--stage-ink);
-  font-family: Georgia, "Times New Roman", serif;
+  font-family: "Fraunces", Georgia, "Times New Roman", serif;
   font-size: clamp(1.3rem, 2.8vw, 2.4rem);
   font-weight: 900;
   letter-spacing: 0;
@@ -626,7 +626,7 @@ textarea { min-height: 72px; resize: vertical; line-height: 1.4; }
 }
 
 .final-scores span, .final-scores em {
-  font-family: Consolas, "IBM Plex Mono", monospace;
+  font-family: "IBM Plex Mono", Consolas, monospace;
   font-style: normal;
   font-weight: 900;
 }
@@ -649,7 +649,7 @@ textarea { min-height: 72px; resize: vertical; line-height: 1.4; }
   background: white;
   color: #111;
   box-shadow: none;
-  font-family: Georgia, "Times New Roman", serif;
+  font-family: "Fraunces", Georgia, "Times New Roman", serif;
 }
 
 .print-sheet h2 {

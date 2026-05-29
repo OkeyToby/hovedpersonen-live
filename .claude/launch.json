@@ -1,0 +1,12 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "arstalsquiz",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["serve", ".", "--listen", "5151"],
+      "port": 5151,
+      "autoPort": false
+    }
+  ]
+}

@@ -90,7 +90,7 @@
       '<section class="panel run-panel">' +
         '<div class="panel-heading"><div><span class="label">Test</span><h2>Kørsel</h2></div></div>' +
         '<div class="readiness-list">' +
-          '<h3>Klar</h3>' +
+          '<h3>' + (ready === cats.length ? 'Klar' : 'Mangler svar') + '</h3>' +
           readinessRow(String(store.data.teams.length), 'hold') +
           readinessRow(String(cats.length) + '/7', 'kategorier oprettet') +
           readinessRow(String(ready) + '/' + String(cats.length), 'kategorier med spørgsmål og svar') +

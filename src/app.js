@@ -1,31 +1,15 @@
 (function () {
-  const modeLabels = {
-    bordhold: 'Bordhold',
-    brudgom: 'Brud mod gom',
-    frit: 'Frit antal hold',
-  };
-
-  const roleLabels = {
-    'reveal-jury': 'Reveal og jury',
-    helpers: 'Hjælper på hold',
-    'own-team': 'Eget hold',
-  };
-
-  const formatLabels = {
-    one_story: 'Tre ting, én historie',
-    three_stories: 'Tre ting, tre historier',
-  };
-
   let store = window.HLGame.createStore(window.HLContent.template);
-  let view = store.state.phase === 'setup' ? 'producer' : 'show';
+  let view = 'producer';
+  let editorCatId = store.data.categories[0] ? store.data.categories[0].id : '';
 
-  function escapeHtml(value) {
-    return String(value ?? '')
-      .replaceAll('&', '&amp;')
-      .replaceAll('<', '&lt;')
-      .replaceAll('>', '&gt;')
-      .replaceAll('"', '&quot;')
-      .replaceAll("'", '&#39;');
+  function esc(value) {
+    return String(value == null ? '' : value)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
   }
 
   function saveAndRender() {
@@ -33,565 +17,430 @@
     render();
   }
 
-  function currentIndex() {
-    return Math.max(0, store.data.cases.findIndex((item) => item.id === store.state.activeCaseId));
-  }
-
-  function activeCaseIndex() {
-    return Math.max(0, store.data.cases.findIndex((item) => item.id === window.HLGame.activeCase(store)?.id));
-  }
-
-  function formatLabel(format) {
-    return formatLabels[format] || formatLabels.one_story;
-  }
-
-  function phaseText() {
-    const labels = {
-      setup: 'Setup',
-      active_team: 'Aktivt hold',
-      steal: 'Steal',
-      reveal: 'Reveal',
-      finished: 'Scoreboard',
-    };
-    return labels[store.state.phase] || 'Setup';
-  }
-
-  function render() {
-    document.querySelector('#root').innerHTML = `
-      <main class="app-shell view-${escapeHtml(view)} phase-${escapeHtml(store.state.phase)}">
-        ${topBar()}
-        ${view === 'producer' ? producerView() : ''}
-        ${view === 'show' ? showStage() : ''}
-        ${view === 'print' ? printPreview() : ''}
-        ${printSheets()}
-      </main>
-    `;
-    bindEvents();
-  }
+  // ─── TOP BAR ─────────────────────────────────────────────────────────────
 
   function topBar() {
-    const event = store.data.event;
-    return `
-      <header class="top-bar">
-        <div class="brand">
-          <span class="brand-mark" aria-hidden="true">HL</span>
-          <div>
-            <strong>Hovedpersonen Live</strong>
-            <span>${escapeHtml(event.occasion)}</span>
-          </div>
-        </div>
-        <nav class="view-tabs" aria-label="Arbejdsflader">
-          ${['producer', 'show', 'print'].map((item) => `
-            <button class="${view === item ? 'active' : ''}" data-action="view" data-view="${item}">
-              ${escapeHtml(item === 'producer' ? 'Producer' : item === 'show' ? 'Show' : 'Print')}
-            </button>
-          `).join('')}
-        </nav>
-        <div class="event-summary">
-          <strong>${escapeHtml(event.coupleA)} & ${escapeHtml(event.coupleB)}</strong>
-          <span>${escapeHtml(event.date)}</span>
-        </div>
-      </header>
-    `;
+    const year = store.data.event.year || '????';
+    return '<header class="top-bar">' +
+      '<div class="brand">' +
+        '<span class="brand-mark" aria-hidden="true">HL</span>' +
+        '<div><strong>Hovedpersonen Live</strong><span>' + esc(year) + '</span></div>' +
+      '</div>' +
+      '<nav class="view-tabs" aria-label="Arbejdsflader">' +
+        ['producer', 'show', 'print'].map(function (v) {
+          const labels = { producer: 'Producer', show: 'Show', print: 'Print' };
+          return '<button class="' + (view === v ? 'active' : '') + '" data-action="view" data-view="' + v + '">' + labels[v] + '</button>';
+        }).join('') +
+      '</nav>' +
+      '<div class="event-summary"><strong>' + esc(store.data.event.title || 'Årstalsquiz') + '</strong></div>' +
+    '</header>';
   }
+
+  // ─── PRODUCER ────────────────────────────────────────────────────────────
 
   function producerView() {
-    return `
-      <section class="producer-grid" aria-label="Producer">
-        ${rundownPanel()}
-        ${caseEditor()}
-        <aside class="side-stack">
-          ${setupPanel()}
-          ${runPanel()}
-          ${scoreboard()}
-        </aside>
-      </section>
-    `;
-  }
-
-  function rundownPanel() {
-    return `
-      <section class="panel rundown-panel">
-        <div class="panel-heading">
-          <div>
-            <span class="label">Producer</span>
-            <h2>Rundown</h2>
-          </div>
-          <button data-action="add-case">Tilføj case</button>
-        </div>
-        <div class="rundown-list">
-          ${store.data.cases.map((item, index) => `
-            <button class="rundown-row ${item.id === store.state.activeCaseId ? 'active' : ''}" data-action="select-case" data-case="${escapeHtml(item.id)}">
-              <span>${String(index + 1).padStart(2, '0')}</span>
-              <strong>${escapeHtml(item.title)}</strong>
-              <em>${escapeHtml(formatLabel(item.format))}</em>
-            </button>
-          `).join('')}
-        </div>
-      </section>
-    `;
+    return '<section class="producer-grid" aria-label="Producer">' +
+      setupPanel() +
+      categoriesPanel() +
+      categoryEditor() +
+    '</section>';
   }
 
   function setupPanel() {
-    const event = store.data.event;
-    return `
-      <section class="panel setup-panel">
-        <div class="panel-heading">
-          <div>
-            <span class="label">Event</span>
-            <h2>Ærespar</h2>
-          </div>
-          <button class="ghost" data-action="reset">Nulstil demo</button>
-        </div>
-        <div class="form-grid">
-          ${inputField('event', 'coupleA', 'Navn 1', event.coupleA)}
-          ${inputField('event', 'coupleB', 'Navn 2', event.coupleB)}
-          ${inputField('event', 'date', 'Dato / note', event.date)}
-          ${inputField('event', 'tone', 'Tone', event.tone)}
-        </div>
-        <details class="advanced-settings">
-          <summary>Hold og rolle</summary>
-          <div class="form-grid">
-            <label>
-              <span>Holdmodel</span>
-              <select data-kind="event" data-field="teamMode">${selectOptions(modeLabels, event.teamMode)}</select>
-            </label>
-            <label>
-              <span>Æresparrets rolle</span>
-              <select data-kind="event" data-field="coupleRole">${selectOptions(roleLabels, event.coupleRole)}</select>
-            </label>
-          </div>
-          <div class="team-editor">
-            <div class="section-title">
-              <h3>Hold</h3>
-              <button data-action="add-team">Tilføj hold</button>
-            </div>
-            ${store.data.teams.map(teamRow).join('')}
-          </div>
-        </details>
-      </section>
-    `;
+    const ev = store.data.event;
+    const cats = store.data.categories;
+    const ready = cats.filter(function (c) { return c.question && c.answer; }).length;
+    return '<aside class="side-stack">' +
+      '<section class="panel">' +
+        '<div class="panel-heading">' +
+          '<div><span class="label">Event</span><h2>Årstalsquiz</h2></div>' +
+          '<button class="ghost" data-action="reset">Nulstil demo</button>' +
+        '</div>' +
+        '<div class="form-grid">' +
+          inputField('event', 'year', 'Årstal', ev.year) +
+          inputField('event', 'title', 'Titel', ev.title) +
+        '</div>' +
+        '<label style="margin-top:10px">' +
+          '<span>Værtsnote</span>' +
+          '<textarea data-kind="event" data-field="note">' + esc(ev.note) + '</textarea>' +
+        '</label>' +
+        '<details class="advanced-settings">' +
+          '<summary>Hold</summary>' +
+          '<div class="team-editor" style="margin-top:12px">' +
+            store.data.teams.map(teamRow).join('') +
+            '<button data-action="add-team" style="margin-top:8px;width:100%">Tilføj hold</button>' +
+          '</div>' +
+        '</details>' +
+      '</section>' +
+      '<section class="panel run-panel">' +
+        '<div class="panel-heading"><div><span class="label">Test</span><h2>Kørsel</h2></div></div>' +
+        '<div class="readiness-list">' +
+          '<h3>Klar</h3>' +
+          readinessRow(String(store.data.teams.length), 'hold') +
+          readinessRow(String(cats.length) + '/7', 'kategorier oprettet') +
+          readinessRow(String(ready) + '/' + String(cats.length), 'kategorier med spørgsmål og svar') +
+        '</div>' +
+        '<div class="run-actions">' +
+          '<button class="primary" data-action="start">Start show</button>' +
+          '<button class="secondary" data-action="view" data-view="print">Print</button>' +
+        '</div>' +
+        '<p class="run-note">Rigtigt +2 · Bonus +1 · Finale +3</p>' +
+      '</section>' +
+    '</aside>';
   }
 
-  function caseEditor() {
-    const active = window.HLGame.activeCase(store);
-    const index = activeCaseIndex();
-    if (!active) return '';
-    return `
-      <section class="panel case-workbench">
-        <div class="panel-heading">
-          <div>
-            <span class="label">Case ${String(index + 1).padStart(2, '0')}</span>
-            <h2>${escapeHtml(active.title)}</h2>
-          </div>
-          <button class="ghost" data-action="remove-case" data-index="${index}">Fjern</button>
-        </div>
-        <article class="case-card active">
-          <div class="case-head">
-            <label>
-              <span>Format</span>
-              <select data-kind="case" data-index="${index}" data-field="format">
-                ${selectOptions(formatLabels, active.format)}
-              </select>
-            </label>
-            <label>
-              <span>Aktivt hold</span>
-              <select data-kind="case" data-index="${index}" data-field="activeTeamId">
-                ${store.data.teams.map((team) => `<option value="${escapeHtml(team.id)}" ${team.id === active.activeTeamId ? 'selected' : ''}>${escapeHtml(team.name)}</option>`).join('')}
-              </select>
-            </label>
-          </div>
-          ${caseInput(index, 'title', 'Titel', active.title)}
-          ${caseInput(index, 'storyOwner', 'Fortæller', active.storyOwner)}
-          ${active.format === 'three_stories' ? optionsEditor(active, index) : cluesEditor(active, index)}
-          <label>
-            <span>Værtsnote</span>
-            <textarea data-kind="case" data-index="${index}" data-field="prompt">${escapeHtml(active.prompt)}</textarea>
-          </label>
-          ${caseInput(index, 'question', 'Spørgsmål', active.question)}
-          ${caseInput(index, 'answer', 'Korrekt svar', active.answer)}
-          <label>
-            <span>Reveal-note</span>
-            <textarea data-kind="case" data-index="${index}" data-field="revealNote">${escapeHtml(active.revealNote)}</textarea>
-          </label>
-        </article>
-      </section>
-    `;
+  function readinessRow(count, text) {
+    return '<div><span>' + esc(count) + '</span><p>' + esc(text) + '</p></div>';
   }
 
-  function cluesEditor(item, index) {
-    return `
-      <div class="clue-editor">
-        ${item.clues.map((clue, clueIndex) => `
-          <label>
-            <span>Ting ${clueIndex + 1}</span>
-            <input data-kind="clue" data-index="${index}" data-clue="${clueIndex}" value="${escapeHtml(clue)}" />
-          </label>
-        `).join('')}
-      </div>
-    `;
+  function categoriesPanel() {
+    const cats = store.data.categories;
+    return '<section class="panel categories-panel">' +
+      '<div class="panel-heading">' +
+        '<div><span class="label">Kategorier</span><h2>' + esc(store.data.event.year || '????') + '</h2></div>' +
+        (cats.length < 7 ? '<button data-action="add-cat">Tilføj kategori</button>' : '<span class="label">Maks. 7</span>') +
+      '</div>' +
+      '<div class="cat-editor-list">' +
+        cats.map(function (cat, index) {
+          const active = cat.id === editorCatId;
+          return '<button class="cat-editor-row ' + (active ? 'active' : '') + '" data-action="select-cat-editor" data-cat-id="' + esc(cat.id) + '">' +
+            '<span class="cat-index">' + String(index + 1).padStart(2, '0') + '</span>' +
+            '<strong>' + (cat.name ? esc(cat.name) : '<em style="opacity:.5">Navn mangler</em>') + '</strong>' +
+            '<span class="cat-status">' + (cat.question && cat.answer ? '✓' : '–') + '</span>' +
+          '</button>';
+        }).join('') +
+      '</div>' +
+      '<section class="panel finale-mini">' +
+        '<div class="panel-heading"><div><span class="label">Finale</span><h2>Finalespørgsmål</h2></div></div>' +
+        '<div class="form-grid">' +
+          finaleInput('question', 'Spørgsmål', store.data.finale.question) +
+          finaleInput('answer', 'Svar', store.data.finale.answer) +
+        '</div>' +
+        '<label style="margin-top:10px">' +
+          '<span>Forklaring</span>' +
+          '<textarea data-kind="finale" data-field="explanation">' + esc(store.data.finale.explanation) + '</textarea>' +
+        '</label>' +
+      '</section>' +
+    '</section>';
   }
 
-  function optionsEditor(item, index) {
-    return `
-      <div class="option-editor">
-        ${item.options.map((option, optionIndex) => `
-          <fieldset>
-            <legend>${String.fromCharCode(65 + optionIndex)}</legend>
-            <label>
-              <span>Ting</span>
-              <input data-kind="option" data-index="${index}" data-option="${optionIndex}" data-field="clue" value="${escapeHtml(option.clue)}" />
-            </label>
-            <label>
-              <span>Historie</span>
-              <textarea data-kind="option" data-index="${index}" data-option="${optionIndex}" data-field="story">${escapeHtml(option.story)}</textarea>
-            </label>
-            <label class="check-row">
-              <input type="radio" name="correct-option-${escapeHtml(item.id)}" data-kind="option" data-index="${index}" data-option="${optionIndex}" data-field="isCorrect" ${option.isCorrect ? 'checked' : ''} />
-              <span>Korrekt</span>
-            </label>
-          </fieldset>
-        `).join('')}
-      </div>
-    `;
-  }
-
-  function runPanel() {
-    return `
-      <section class="panel run-panel">
-        <div class="panel-heading">
-          <div>
-            <span class="label">Test</span>
-            <h2>Kørsel</h2>
-          </div>
-        </div>
-        ${readinessChecklist()}
-        <div class="run-actions">
-          <button class="primary" data-action="start">Start show</button>
-          <button class="secondary" data-action="view" data-view="print">Print</button>
-        </div>
-        <p class="run-note">Aktivt hold +2. Steal +1.</p>
-      </section>
-    `;
-  }
-
-  function readinessChecklist() {
-    const filled = store.data.cases.filter((item) => item.storyOwner && item.question && item.answer).length;
-    const clueReady = store.data.cases.filter((item) => item.format === 'three_stories' ? item.options.every((option) => option.clue && option.story) : item.clues.every(Boolean)).length;
-    const items = [
-      [`${filled}/${store.data.cases.length}`, 'cases med fortæller, spørgsmål og svar'],
-      [`${clueReady}/${store.data.cases.length}`, 'cases med tre ting'],
-      [`${store.data.teams.length}`, 'hold'],
-      ['4', 'printark'],
-    ];
-
-    return `
-      <div class="readiness-list" aria-label="Klar til test">
-        <h3>Klar til test</h3>
-        ${items.map(([count, text]) => `
-          <div>
-            <span>${escapeHtml(count)}</span>
-            <p>${escapeHtml(text)}</p>
-          </div>
-        `).join('')}
-      </div>
-    `;
-  }
-
-  function showStage() {
-    if (store.state.finished || store.state.phase === 'finished') return finishedStage();
-    const item = window.HLGame.activeCase(store);
-    const team = window.HLGame.activeTeam(store);
-    if (!item) return emptyStage();
-    const isSteal = store.state.phase === 'steal';
-    const isReveal = store.state.phase === 'reveal';
-    const visibleClueCount = isReveal || isSteal ? 3 : Number(store.state.visibleClueCount) || 0;
-    const allCluesVisible = visibleClueCount >= 3;
-    const progress = `${currentIndex() + 1}/${store.data.cases.length}`;
-
-    return `
-      <section class="show-stage ${isReveal ? 'is-reveal' : ''} ${visibleClueCount === 0 && !isReveal ? 'is-awaiting-clue' : ''}" aria-label="Show">
-        <div class="stage-rail">
-          <span>${escapeHtml(phaseText())}</span>
-          <span>Case ${escapeHtml(progress)}</span>
-          <span>${escapeHtml(formatLabel(item.format))} - ${escapeHtml(Math.min(visibleClueCount, 3))}/3</span>
-        </div>
-        <div class="stage-grid">
-          <div class="team-card">
-            <span class="label">Aktivt hold</span>
-            <h1>${escapeHtml(team?.name || 'Hold')}</h1>
-            <p>${escapeHtml(item.title)}</p>
-            <div class="score-line">${scoreLine()}</div>
-          </div>
-          <div class="story-card">
-            <span class="label">${escapeHtml(stageLabel(item, isReveal, allCluesVisible))}</span>
-            <h2>${escapeHtml(stageHeadline(item, isReveal, allCluesVisible))}</h2>
-            ${item.format === 'three_stories' ? optionStage(item, isReveal, visibleClueCount) : clueStage(item, visibleClueCount)}
-            <p class="story-prompt">${escapeHtml(stagePrompt(item, isReveal, allCluesVisible, visibleClueCount))}</p>
-          </div>
-        </div>
-        ${isSteal ? stealPanel() : ''}
-        <div class="host-controls">
-          ${store.state.phase === 'setup' ? '<button class="primary" data-action="start">Start show</button>' : ''}
-          ${store.state.phase !== 'setup' && !isReveal && !isSteal && !allCluesVisible ? `<button class="primary" data-action="show-clue">${visibleClueCount === 0 ? 'Vis ting 1' : 'Vis næste ting'}</button>` : ''}
-          ${store.state.phase !== 'setup' && !isReveal && !isSteal && allCluesVisible ? '<button class="success" data-action="correct">Rigtigt +2</button><button class="danger" data-action="wrong">Forkert</button><button class="secondary" data-action="reveal">Reveal</button>' : ''}
-          ${isReveal ? '<button class="primary" data-action="next">Næste</button>' : ''}
-          ${store.state.phase !== 'setup' ? '<button class="secondary" data-action="finish">Afslut</button>' : ''}
-        </div>
-      </section>
-    `;
-  }
-
-  function stageLabel(item, isReveal, allCluesVisible) {
-    if (isReveal) return 'Korrekt svar';
-    if (!allCluesVisible) return item.storyOwner || 'Fortæller';
-    return 'Spørgsmål';
-  }
-
-  function stageHeadline(item, isReveal, allCluesVisible) {
-    if (isReveal) return item.answer;
-    if (allCluesVisible) return item.question;
-    return item.title;
-  }
-
-  function stagePrompt(item, isReveal, allCluesVisible, visibleClueCount) {
-    if (isReveal) return item.revealNote;
-    if (allCluesVisible) return item.prompt;
-    if (visibleClueCount === 0) return 'Klar til første ting.';
-    return item.prompt;
-  }
-
-  function clueStage(item, visibleClueCount) {
-    const visible = item.clues.slice(0, visibleClueCount);
-    return `
-      <div class="clue-grid clue-count-${escapeHtml(visible.length)}">
-        ${visible.map((clue, index) => `<div><span>${index + 1}</span><strong>${escapeHtml(clue)}</strong></div>`).join('')}
-        ${visible.length === 0 ? '<div class="clue-placeholder"><span>1</span><strong>Klar</strong></div>' : ''}
-      </div>
-    `;
-  }
-
-  function optionStage(item, isReveal, visibleClueCount) {
-    const visible = item.options.slice(0, visibleClueCount);
-    return `
-      <div class="choice-grid clue-count-${escapeHtml(visible.length)}">
-        ${visible.map((option, index) => `
-          <div class="${isReveal && option.isCorrect ? 'correct' : ''}">
-            <span>${String.fromCharCode(65 + index)}</span>
-            <strong>${escapeHtml(option.clue)}</strong>
-            ${visibleClueCount >= 3 || isReveal ? `<p>${escapeHtml(option.story)}</p>` : ''}
-          </div>
-        `).join('')}
-        ${visible.length === 0 ? '<div class="clue-placeholder"><span>A</span><strong>Klar</strong></div>' : ''}
-      </div>
-    `;
-  }
-
-  function stealPanel() {
-    const activeId = store.state.activeTeamId;
-    const teams = store.data.teams.filter((team) => team.id !== activeId);
-    return `
-      <div class="steal-panel" aria-label="Steal">
-        <div>
-          <span class="label">Stjæl +1</span>
-          <p>Vælg holdet der svarer rigtigt.</p>
-        </div>
-        <div class="steal-actions">
-          ${teams.map((team) => `<button data-action="steal" data-team="${escapeHtml(team.id)}">${escapeHtml(team.name)} +1</button>`).join('')}
-        </div>
-      </div>
-    `;
-  }
-
-  function finishedStage() {
-    const sorted = [...store.data.teams].sort((a, b) => b.score - a.score);
-    const winner = sorted[0];
-    return `
-      <section class="show-stage finished-stage" aria-label="Scoreboard">
-        <div class="stage-rail">
-          <span>Finale</span>
-          <span>${escapeHtml(store.data.cases.length)} cases</span>
-          <span>${escapeHtml(roleLabels[store.data.event.coupleRole])}</span>
-        </div>
-        <div class="winner">
-          <span class="label">Scoreboard</span>
-          <h1>${escapeHtml(winner?.name || 'Score')}</h1>
-          <div class="final-scores">
-            ${sorted.map((team, index) => `<div><span>${index + 1}</span><strong>${escapeHtml(team.name)}</strong><em>${escapeHtml(team.score)} point</em></div>`).join('')}
-          </div>
-        </div>
-        <div class="host-controls">
-          <button class="secondary" data-action="start">Start forfra</button>
-          <button class="secondary" data-action="view" data-view="print">Print</button>
-        </div>
-      </section>
-    `;
-  }
-
-  function emptyStage() {
-    return '<section class="show-stage"><div class="winner"><h1>Ingen cases</h1></div></section>';
-  }
-
-  function printPreview() {
-    return `
-      <section class="print-preview" aria-label="Print">
-        <div class="print-toolbar">
-          <div>
-            <span class="label">Print</span>
-            <h2>Ark</h2>
-          </div>
-          <button class="primary" data-action="print">Åbn print</button>
-        </div>
-        <div class="print-grid">
-          ${hostSheet()}
-          ${caseCards()}
-          ${propCards()}
-          ${teamSheets()}
-        </div>
-      </section>
-    `;
-  }
-
-  function printSheets() {
-    return `<section class="print-sheets" aria-label="Printark">${hostSheet()}${caseCards()}${propCards()}${teamSheets()}</section>`;
-  }
-
-  function hostSheet() {
-    return `
-      <article class="print-sheet print-host">
-        <h2>Værtark: ${escapeHtml(store.data.event.coupleA)} & ${escapeHtml(store.data.event.coupleB)}</h2>
-        <p><strong>Point:</strong> aktivt hold +2. Steal +1. Rolle: ${escapeHtml(roleLabels[store.data.event.coupleRole])}.</p>
-        ${store.data.cases.map((item, index) => `
-          <section>
-            <h3>${index + 1}. ${escapeHtml(item.title)}</h3>
-            <p><strong>Format:</strong> ${escapeHtml(formatLabel(item.format))}</p>
-            <p><strong>Hold:</strong> ${escapeHtml(teamName(item.activeTeamId))}</p>
-            <p><strong>Fortæller:</strong> ${escapeHtml(item.storyOwner)}</p>
-            <p><strong>Ting:</strong> ${printClues(item)}</p>
-            <p><strong>Spørgsmål:</strong> ${escapeHtml(item.question)}</p>
-            <p><strong>Svar:</strong> ${escapeHtml(item.answer)}</p>
-            <p><strong>Reveal:</strong> ${escapeHtml(item.revealNote)}</p>
-          </section>
-        `).join('')}
-      </article>
-    `;
-  }
-
-  function caseCards() {
-    return `
-      <article class="print-sheet">
-        <h2>Casekort</h2>
-        ${store.data.cases.map((item, index) => `
-          <section>
-            <h3>${index + 1}. ${escapeHtml(item.title)}</h3>
-            <p>${escapeHtml(item.prompt)}</p>
-            <p><strong>${escapeHtml(item.question)}</strong></p>
-          </section>
-        `).join('')}
-      </article>
-    `;
-  }
-
-  function propCards() {
-    return `
-      <article class="print-sheet">
-        <h2>Rekvisitkort</h2>
-        ${store.data.cases.map((item, index) => `
-          <section>
-            <h3>${index + 1}. ${escapeHtml(item.title)}</h3>
-            <p>${printClues(item)}</p>
-          </section>
-        `).join('')}
-      </article>
-    `;
-  }
-
-  function teamSheets() {
-    return `
-      <article class="print-sheet">
-        <h2>Holdark</h2>
-        ${store.data.teams.map((team) => `
-          <section>
-            <h3>${escapeHtml(team.name)}</h3>
-            ${store.data.cases.map((item, index) => `<p>${index + 1}. ${escapeHtml(item.title)}: _______________________________</p>`).join('')}
-            <p>Point: ________</p>
-          </section>
-        `).join('')}
-      </article>
-    `;
-  }
-
-  function printClues(item) {
-    const clues = item.format === 'three_stories' ? item.options.map((option) => option.clue) : item.clues;
-    return clues.map(escapeHtml).join(' / ');
-  }
-
-  function scoreboard() {
-    const sorted = [...store.data.teams].sort((a, b) => b.score - a.score);
-    return `
-      <section class="panel scoreboard" aria-label="Scoreboard">
-        <div class="section-title">
-          <h2>Score</h2>
-          <span>${escapeHtml(store.state.completedCaseIds.length)} / ${escapeHtml(store.data.cases.length)}</span>
-        </div>
-        <div class="score-strip">
-          ${sorted.map((team, index) => `<div class="score-chip"><span>${index + 1}</span><strong>${escapeHtml(team.name)}</strong><em>${escapeHtml(team.score)}</em></div>`).join('')}
-        </div>
-      </section>
-    `;
-  }
-
-  function scoreLine() {
-    if (store.state.lastScoreEvent) return escapeHtml(store.state.lastScoreEvent);
-    const team = window.HLGame.activeTeam(store);
-    if (!team) return 'Ingen hold';
-    return `${escapeHtml(team.name)} · ${escapeHtml(team.score)} point`;
-  }
-
-  function inputField(kind, field, label, value) {
-    return `
-      <label>
-        <span>${escapeHtml(label)}</span>
-        <input data-kind="${escapeHtml(kind)}" data-field="${escapeHtml(field)}" value="${escapeHtml(value)}" />
-      </label>
-    `;
-  }
-
-  function caseInput(index, field, label, value) {
-    return `
-      <label>
-        <span>${escapeHtml(label)}</span>
-        <input data-kind="case" data-index="${index}" data-field="${escapeHtml(field)}" value="${escapeHtml(value)}" />
-      </label>
-    `;
-  }
-
-  function selectOptions(labels, selected) {
-    return Object.entries(labels)
-      .map(([value, label]) => `<option value="${escapeHtml(value)}" ${value === selected ? 'selected' : ''}>${escapeHtml(label)}</option>`)
-      .join('');
+  function categoryEditor() {
+    const cat = store.data.categories.find(function (c) { return c.id === editorCatId; });
+    const index = store.data.categories.findIndex(function (c) { return c.id === editorCatId; });
+    if (!cat) {
+      return '<section class="panel cat-workbench"><div class="panel-heading"><div><span class="label">Kategori</span><h2>Vælg en kategori</h2></div></div></section>';
+    }
+    return '<section class="panel cat-workbench">' +
+      '<div class="panel-heading">' +
+        '<div><span class="label">Kategori ' + String(index + 1).padStart(2, '0') + '</span><h2>' + (cat.name ? esc(cat.name) : 'Uden navn') + '</h2></div>' +
+        (store.data.categories.length > 3 ? '<button class="ghost" data-action="remove-cat" data-cat-id="' + esc(cat.id) + '">Fjern</button>' : '') +
+      '</div>' +
+      '<article class="case-card active">' +
+        catInput(index, 'name', 'Navn', cat.name) +
+        catInput(index, 'question', 'Spørgsmål', cat.question) +
+        catInput(index, 'answer', 'Svar', cat.answer) +
+        '<label>' +
+          '<span>Forklaring (valgfri)</span>' +
+          '<textarea data-kind="cat" data-index="' + index + '" data-field="explanation">' + esc(cat.explanation) + '</textarea>' +
+        '</label>' +
+      '</article>' +
+    '</section>';
   }
 
   function teamRow(team, index) {
-    return `
-      <div class="team-row">
-        <input data-kind="team" data-index="${index}" data-field="name" value="${escapeHtml(team.name)}" aria-label="Holdnavn" />
-        <input data-kind="team" data-index="${index}" data-field="score" type="number" value="${escapeHtml(team.score)}" aria-label="Point" />
-        <button class="ghost" data-action="remove-team" data-index="${index}">Fjern</button>
-      </div>
-    `;
+    return '<div class="team-row">' +
+      '<input data-kind="team" data-index="' + index + '" data-field="name" value="' + esc(team.name) + '" aria-label="Holdnavn" />' +
+      '<input data-kind="team" data-index="' + index + '" data-field="score" type="number" value="' + esc(team.score) + '" aria-label="Point" />' +
+      (store.data.teams.length > 1 ? '<button class="ghost" data-action="remove-team" data-index="' + index + '">Fjern</button>' : '') +
+    '</div>';
   }
 
-  function teamName(teamId) {
-    return store.data.teams.find((team) => team.id === teamId)?.name || 'Vælg hold';
+  function inputField(kind, field, label, value) {
+    return '<label><span>' + esc(label) + '</span>' +
+      '<input data-kind="' + esc(kind) + '" data-field="' + esc(field) + '" value="' + esc(value) + '" /></label>';
   }
+
+  function catInput(index, field, label, value) {
+    return '<label><span>' + esc(label) + '</span>' +
+      '<input data-kind="cat" data-index="' + index + '" data-field="' + esc(field) + '" value="' + esc(value) + '" /></label>';
+  }
+
+  function finaleInput(field, label, value) {
+    return '<label><span>' + esc(label) + '</span>' +
+      '<input data-kind="finale" data-field="' + esc(field) + '" value="' + esc(value) + '" /></label>';
+  }
+
+  // ─── SHOW ────────────────────────────────────────────────────────────────
+
+  function showStage() {
+    const phase = store.state.phase;
+    if (phase === 'intro') return introStage();
+    if (phase === 'category_board') return categoryBoardStage();
+    if (phase === 'question') return questionStage();
+    if (phase === 'reveal') return revealStage();
+    if (phase === 'finale') return finaleStage();
+    return finishedStage();
+  }
+
+  function liveScore() {
+    const sorted = store.data.teams.slice().sort(function (a, b) { return b.score - a.score; });
+    const leaderScore = sorted.length ? sorted[0].score : 0;
+    return '<aside class="live-score" aria-label="Live score">' +
+      '<div class="live-score-list">' +
+        sorted.map(function (team, i) {
+          const isActive = team.id === (window.HLGame.activeTeam(store) || {}).id;
+          const isLeader = team.score === leaderScore && i === 0;
+          return '<div class="live-score-row' + (isActive ? ' is-active' : '') + (isLeader ? ' is-leader' : '') + '">' +
+            '<span>' + (i + 1) + '</span>' +
+            '<strong>' + esc(team.name) + '</strong>' +
+            '<em>' + esc(team.score) + '</em>' +
+          '</div>';
+        }).join('') +
+      '</div>' +
+      '<div class="bonus-actions" aria-label="Bonus +1">' +
+        '<span>Bonus +1</span>' +
+        store.data.teams.map(function (t) {
+          return '<button class="bonus-button" data-action="bonus" data-team-id="' + esc(t.id) + '">' + esc(t.name) + '</button>';
+        }).join('') +
+      '</div>' +
+    '</aside>';
+  }
+
+  function introStage() {
+    return '<section class="show-stage intro-stage" aria-label="Intro">' +
+      '<div class="intro-year">' +
+        '<span class="label" style="color:var(--stage-muted)">Årstalsquiz</span>' +
+        '<h1>' + esc(store.data.event.year || '????') + '</h1>' +
+        (store.data.event.title ? '<p>' + esc(store.data.event.title) + '</p>' : '') +
+      '</div>' +
+      '<div class="host-controls">' +
+        '<button class="primary" data-action="start-cats">Vis kategori-board</button>' +
+      '</div>' +
+    '</section>';
+  }
+
+  function categoryBoardStage() {
+    const team = window.HLGame.activeTeam(store);
+    const cats = store.data.categories;
+    const countClass = 'cat-board-count-' + cats.length;
+    return '<section class="show-stage" aria-label="Kategori-board">' +
+      '<div class="stage-rail">' +
+        '<span>' + esc(store.data.event.year || '????') + '</span>' +
+        '<span>' + esc(team ? team.name + ' vælger' : '') + '</span>' +
+        '<span>' + esc(window.HLGame.availableCategories(store).length) + ' tilbage</span>' +
+      '</div>' +
+      liveScore() +
+      '<div class="category-board ' + countClass + '">' +
+        cats.map(function (cat) {
+          const used = cat.used;
+          return '<button class="cat-tile' + (used ? ' used' : '') + '" ' +
+            (used ? 'disabled aria-disabled="true"' : 'data-action="select-cat-show" data-cat-id="' + esc(cat.id) + '"') + '>' +
+            esc(cat.name) +
+          '</button>';
+        }).join('') +
+      '</div>' +
+      '<div class="host-controls">' +
+        '<button class="secondary" data-action="finish">Afslut</button>' +
+      '</div>' +
+    '</section>';
+  }
+
+  function questionStage() {
+    const team = window.HLGame.activeTeam(store);
+    const cat = window.HLGame.activeCategory(store);
+    if (!cat) return categoryBoardStage();
+    return '<section class="show-stage" aria-label="Spørgsmål">' +
+      '<div class="stage-rail">' +
+        '<span>' + esc(cat.name) + '</span>' +
+        '<span>' + esc(team ? team.name : '') + '</span>' +
+        '<span>Spørgsmål</span>' +
+      '</div>' +
+      liveScore() +
+      '<div class="stage-grid">' +
+        '<div class="team-card">' +
+          '<span class="label">Aktivt hold</span>' +
+          '<h1>' + esc(team ? team.name : '') + '</h1>' +
+          '<p>' + esc(cat.name) + '</p>' +
+        '</div>' +
+        '<div class="story-card">' +
+          '<span class="label">Spørgsmål</span>' +
+          '<h2>' + esc(cat.question) + '</h2>' +
+        '</div>' +
+      '</div>' +
+      '<div class="host-controls">' +
+        '<button class="success" data-action="correct">Rigtigt +2</button>' +
+        '<button class="danger" data-action="wrong">Forkert</button>' +
+        '<button class="secondary" data-action="finish">Afslut</button>' +
+      '</div>' +
+    '</section>';
+  }
+
+  function revealStage() {
+    const cat = window.HLGame.activeCategory(store);
+    const scoreEvent = store.state.lastScoreEvent;
+    const isCorrect = scoreEvent && scoreEvent.indexOf('+2') !== -1;
+    return '<section class="show-stage is-reveal" aria-label="Svar">' +
+      '<div class="stage-rail">' +
+        '<span>' + (cat ? esc(cat.name) : '') + '</span>' +
+        '<span>' + esc(scoreEvent) + '</span>' +
+        '<span>Reveal</span>' +
+      '</div>' +
+      liveScore() +
+      '<div class="stage-grid">' +
+        '<div class="team-card">' +
+          '<span class="label">Svar</span>' +
+          '<h1>' + (cat ? esc(cat.answer) : '') + '</h1>' +
+          (scoreEvent ? '<div class="score-line">' + esc(scoreEvent) + '</div>' : '') +
+        '</div>' +
+        '<div class="story-card">' +
+          '<span class="label">' + (isCorrect ? 'Korrekt' : 'Forkert') + '</span>' +
+          '<h2>' + (cat ? esc(cat.question) : '') + '</h2>' +
+          (cat && cat.explanation ? '<p class="story-prompt">' + esc(cat.explanation) + '</p>' : '') +
+        '</div>' +
+      '</div>' +
+      '<div class="host-controls">' +
+        '<button class="primary" data-action="next">Næste</button>' +
+        '<button class="secondary" data-action="finish">Afslut</button>' +
+      '</div>' +
+    '</section>';
+  }
+
+  function finaleStage() {
+    const fin = store.data.finale;
+    return '<section class="show-stage finale-stage" aria-label="Finale">' +
+      '<div class="stage-rail">' +
+        '<span>FINALE</span>' +
+        '<span>' + esc(store.data.event.year || '????') + '</span>' +
+        '<span>Afgørende runde</span>' +
+      '</div>' +
+      liveScore() +
+      '<div class="stage-grid">' +
+        '<div class="team-card finale-left">' +
+          '<span class="label">Vinder</span>' +
+          '<h1>Finale +3</h1>' +
+          '<p>Vælg vinderholdet herunder.</p>' +
+          '<div class="finale-team-buttons">' +
+            store.data.teams.map(function (t) {
+              return '<button class="finale-team-btn" data-action="finale-correct" data-team-id="' + esc(t.id) + '">' + esc(t.name) + '</button>';
+            }).join('') +
+          '</div>' +
+        '</div>' +
+        '<div class="story-card">' +
+          '<span class="label">Finalespørgsmål</span>' +
+          '<h2>' + esc(fin.question) + '</h2>' +
+          (fin.explanation ? '<p class="story-prompt">' + esc(fin.explanation) + '</p>' : '') +
+        '</div>' +
+      '</div>' +
+      '<div class="host-controls">' +
+        '<button class="secondary" data-action="finish">Afslut uden finalevinder</button>' +
+      '</div>' +
+    '</section>';
+  }
+
+  function finishedStage() {
+    const sorted = store.data.teams.slice().sort(function (a, b) { return b.score - a.score; });
+    const winner = sorted[0];
+    return '<section class="show-stage finished-stage" aria-label="Scoreboard">' +
+      '<div class="stage-rail">' +
+        '<span>Scoreboard</span>' +
+        '<span>' + esc(store.data.event.year || '????') + '</span>' +
+        '<span>' + store.data.categories.length + ' kategorier</span>' +
+      '</div>' +
+      '<div class="winner">' +
+        '<span class="label">Vinder</span>' +
+        '<h1>' + esc(winner ? winner.name : 'Ingen') + '</h1>' +
+        '<div class="final-scores">' +
+          sorted.map(function (team, i) {
+            return '<div>' +
+              '<span>' + (i + 1) + '</span>' +
+              '<strong>' + esc(team.name) + '</strong>' +
+              '<em>' + esc(team.score) + ' point</em>' +
+            '</div>';
+          }).join('') +
+        '</div>' +
+      '</div>' +
+      '<div class="host-controls">' +
+        '<button class="secondary" data-action="start">Start forfra</button>' +
+        '<button class="secondary" data-action="view" data-view="print">Print</button>' +
+      '</div>' +
+    '</section>';
+  }
+
+  // ─── PRINT ───────────────────────────────────────────────────────────────
+
+  function printPreview() {
+    return '<section class="print-preview" aria-label="Print">' +
+      '<div class="print-toolbar"><div><span class="label">Print</span><h2>Ark</h2></div>' +
+        '<button class="primary" data-action="print">Åbn print</button>' +
+      '</div>' +
+      '<div class="print-grid">' + hostSheet() + teamSheets() + '</div>' +
+    '</section>';
+  }
+
+  function printSheets() {
+    return '<section class="print-sheets" aria-label="Printark">' + hostSheet() + teamSheets() + '</section>';
+  }
+
+  function hostSheet() {
+    const ev = store.data.event;
+    return '<article class="print-sheet print-host">' +
+      '<h2>Værtark — ' + esc(ev.year) + ': ' + esc(ev.title) + '</h2>' +
+      '<p><strong>Point:</strong> Rigtigt +2 · Bonus +1 · Finale +3. Kategorier låses globalt ved brug.</p>' +
+      store.data.categories.map(function (cat, i) {
+        return '<section>' +
+          '<h3>' + (i + 1) + '. ' + esc(cat.name) + '</h3>' +
+          '<p><strong>Spørgsmål:</strong> ' + esc(cat.question) + '</p>' +
+          '<p><strong>Svar:</strong> ' + esc(cat.answer) + '</p>' +
+          (cat.explanation ? '<p><strong>Forklaring:</strong> ' + esc(cat.explanation) + '</p>' : '') +
+        '</section>';
+      }).join('') +
+      '<section>' +
+        '<h3>Finale</h3>' +
+        '<p><strong>Spørgsmål:</strong> ' + esc(store.data.finale.question) + '</p>' +
+        '<p><strong>Svar:</strong> ' + esc(store.data.finale.answer) + '</p>' +
+        (store.data.finale.explanation ? '<p><strong>Forklaring:</strong> ' + esc(store.data.finale.explanation) + '</p>' : '') +
+      '</section>' +
+    '</article>';
+  }
+
+  function teamSheets() {
+    return '<article class="print-sheet">' +
+      '<h2>Holdark — ' + esc(store.data.event.year) + '</h2>' +
+      store.data.teams.map(function (team) {
+        return '<section>' +
+          '<h3>' + esc(team.name) + '</h3>' +
+          store.data.categories.map(function (cat, i) {
+            return '<p>' + (i + 1) + '. ' + esc(cat.name) + ': _______________________________</p>';
+          }).join('') +
+          '<p>Finale: _______________________________</p>' +
+          '<p>Point: ________</p>' +
+        '</section>';
+      }).join('') +
+    '</article>';
+  }
+
+  // ─── RENDER ──────────────────────────────────────────────────────────────
+
+  function render() {
+    document.querySelector('#root').innerHTML =
+      '<main class="app-shell view-' + esc(view) + ' phase-' + esc(store.state.phase) + '">' +
+        topBar() +
+        (view === 'producer' ? producerView() : '') +
+        (view === 'show' ? showStage() : '') +
+        (view === 'print' ? printPreview() : '') +
+        printSheets() +
+      '</main>';
+    bindEvents();
+  }
+
+  // ─── EVENTS ──────────────────────────────────────────────────────────────
 
   function bindEvents() {
-    document.querySelectorAll('input, textarea, select').forEach((field) => {
-      field.addEventListener('change', updateField);
+    document.querySelectorAll('input, textarea, select').forEach(function (el) {
+      el.addEventListener('change', updateField);
     });
-    document.querySelectorAll('[data-action]').forEach((button) => {
-      button.addEventListener('click', handleAction);
+    document.querySelectorAll('[data-action]').forEach(function (el) {
+      el.addEventListener('click', handleAction);
     });
   }
 
@@ -600,117 +449,117 @@
     const kind = el.dataset.kind;
     const field = el.dataset.field;
 
-    if (kind === 'event') store.data.event[field] = el.value;
-
+    if (kind === 'event') {
+      store.data.event[field] = el.value;
+    }
     if (kind === 'team') {
       const team = store.data.teams[Number(el.dataset.index)];
-      if (field === 'score') team.score = Number(el.value) || 0;
-      else team[field] = el.value;
-    }
-
-    if (kind === 'case') {
-      const item = store.data.cases[Number(el.dataset.index)];
-      item[field] = el.value;
-      if (field === 'activeTeamId' && item.id === store.state.activeCaseId) store.state.activeTeamId = el.value;
-      if (field === 'format' && item.format === 'three_stories' && (!Array.isArray(item.options) || item.options.length < 3)) {
-        item.options = item.clues.map((clue, index) => ({ clue, story: index === 0 ? item.answer : '', isCorrect: index === 0 }));
+      if (team) {
+        if (field === 'score') team.score = Number(el.value) || 0;
+        else team[field] = el.value;
       }
     }
-
-    if (kind === 'clue') {
-      store.data.cases[Number(el.dataset.index)].clues[Number(el.dataset.clue)] = el.value;
+    if (kind === 'cat') {
+      const cat = store.data.categories[Number(el.dataset.index)];
+      if (cat) cat[field] = el.value;
     }
-
-    if (kind === 'option') {
-      const item = store.data.cases[Number(el.dataset.index)];
-      const option = item.options[Number(el.dataset.option)];
-      if (field === 'isCorrect') {
-        if (!el.checked) return;
-        item.options.forEach((candidate) => {
-          candidate.isCorrect = false;
-        });
-        option.isCorrect = el.checked;
-      } else {
-        option[field] = el.value;
-      }
+    if (kind === 'finale') {
+      store.data.finale[field] = el.value;
     }
 
     saveAndRender();
   }
 
   function handleAction(event) {
-    const action = event.currentTarget.dataset.action;
-    const index = Number(event.currentTarget.dataset.index);
+    const el = event.currentTarget;
+    const action = el.dataset.action;
 
-    if (action === 'view') view = event.currentTarget.dataset.view || 'producer';
+    if (action === 'view') {
+      view = el.dataset.view || 'producer';
+    }
+
     if (action === 'start') {
-      store.data.teams.forEach((team) => {
-        team.score = 0;
-      });
       window.HLGame.startShow(store);
       view = 'show';
     }
-    if (action === 'correct') window.HLGame.markCorrect(store);
-    if (action === 'wrong') window.HLGame.markWrong(store);
-    if (action === 'reveal') window.HLGame.reveal(store);
-    if (action === 'show-clue') window.HLGame.showNextClue(store);
-    if (action === 'next') window.HLGame.nextTurn(store);
-    if (action === 'finish') window.HLGame.finish(store);
-    if (action === 'print') window.print();
-    if (action === 'steal') window.HLGame.awardSteal(store, event.currentTarget.dataset.team);
-    if (action === 'select-case') {
-      const item = store.data.cases.find((candidate) => candidate.id === event.currentTarget.dataset.case);
-      if (item) {
-        store.state.activeCaseId = item.id;
-        store.state.activeTeamId = item.activeTeamId;
-        store.state.visibleClueCount = 0;
-        if (store.state.phase !== 'setup') store.state.phase = 'active_team';
-      }
+
+    if (action === 'start-cats') {
+      window.HLGame.startCategories(store);
     }
+
+    if (action === 'select-cat-editor') {
+      editorCatId = el.dataset.catId || '';
+    }
+
+    if (action === 'select-cat-show') {
+      window.HLGame.selectCategory(store, el.dataset.catId || '');
+    }
+
+    if (action === 'correct') {
+      window.HLGame.markCorrect(store);
+    }
+
+    if (action === 'wrong') {
+      window.HLGame.markWrong(store);
+    }
+
+    if (action === 'bonus') {
+      window.HLGame.awardBonus(store, el.dataset.teamId || '');
+    }
+
+    if (action === 'next') {
+      window.HLGame.nextTurn(store);
+    }
+
+    if (action === 'finale-correct') {
+      window.HLGame.markFinaleCorrect(store, el.dataset.teamId || '');
+    }
+
+    if (action === 'finish') {
+      window.HLGame.finishGame(store);
+    }
+
+    if (action === 'print') {
+      window.print();
+    }
+
     if (action === 'add-team') {
-      const id = `team-${Date.now()}`;
-      store.data.teams.push({ id, name: `Hold ${store.data.teams.length + 1}`, score: 0 });
+      const id = 'team-' + Date.now();
+      store.data.teams.push({ id: id, name: 'Hold ' + (store.data.teams.length + 1), score: 0 });
     }
-    if (action === 'remove-team' && store.data.teams.length > 1) {
-      const removed = store.data.teams.splice(index, 1)[0];
-      store.data.cases.forEach((item, caseIndex) => {
-        if (item.activeTeamId === removed.id) item.activeTeamId = store.data.teams[caseIndex % store.data.teams.length].id;
-      });
+
+    if (action === 'remove-team') {
+      const idx = Number(el.dataset.index);
+      if (store.data.teams.length > 1) store.data.teams.splice(idx, 1);
+      store.state.activeTeamIndex = Math.min(store.state.activeTeamIndex, store.data.teams.length - 1);
     }
-    if (action === 'add-case') {
-      const team = store.data.teams[store.data.cases.length % store.data.teams.length];
-      const item = {
-        id: `case-${Date.now()}`,
-        format: 'one_story',
-        title: 'Ny case',
-        activeTeamId: team.id,
-        storyOwner: '',
-        clues: ['Ting 1', 'Ting 2', 'Ting 3'],
-        prompt: 'Fortæller tager de tre ting en efter en.',
-        question: 'Hvad skete der?',
+
+    if (action === 'add-cat' && store.data.categories.length < 7) {
+      const newCat = {
+        id: 'cat-' + Date.now(),
+        name: '',
+        question: '',
         answer: '',
-        revealNote: '',
-        options: [
-          { clue: 'Ting 1', story: '', isCorrect: true },
-          { clue: 'Ting 2', story: '', isCorrect: false },
-          { clue: 'Ting 3', story: '', isCorrect: false },
-        ],
+        explanation: '',
+        used: false,
       };
-      store.data.cases.push(item);
-      store.state.activeCaseId = item.id;
-      store.state.activeTeamId = item.activeTeamId;
-      store.state.visibleClueCount = 0;
+      store.data.categories.push(newCat);
+      editorCatId = newCat.id;
     }
-    if (action === 'remove-case' && store.data.cases.length > 1) {
-      store.data.cases.splice(index, 1);
-      if (!store.data.cases.some((item) => item.id === store.state.activeCaseId)) {
-        store.state.activeCaseId = store.data.cases[0].id;
-        store.state.activeTeamId = store.data.cases[0].activeTeamId;
-        store.state.visibleClueCount = 0;
+
+    if (action === 'remove-cat') {
+      const catId = el.dataset.catId || '';
+      if (store.data.categories.length > 3) {
+        store.data.categories = store.data.categories.filter(function (c) { return c.id !== catId; });
+        if (editorCatId === catId) {
+          editorCatId = store.data.categories[0] ? store.data.categories[0].id : '';
+        }
       }
     }
+
     if (action === 'reset') {
       store = window.HLGame.reset(window.HLContent.template);
+      editorCatId = store.data.categories[0] ? store.data.categories[0].id : '';
       view = 'producer';
     }
 

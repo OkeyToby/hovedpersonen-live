@@ -67,7 +67,8 @@ The prototype includes:
 - Editable `Tre ting, én historie` and `Tre ting, tre historier` cases.
 - Deterministic show loop: setup, active team, clue reveal 1-3, answer/steal,
   reveal, next turn, finished scoreboard.
-- Manual scoring: active team +2, steal +1.
+- Live score in the show view with active-team and leading-team emphasis.
+- Manual scoring: active team +2, steal +1, and host-awarded bonus +1.
 - `localStorage` persistence for preparation data.
 - Print sheets for host, cases, props, and teams.
 

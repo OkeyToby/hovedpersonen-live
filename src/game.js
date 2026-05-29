@@ -1,80 +1,84 @@
 (function () {
-  const STORAGE_KEY = 'hovedpersonen-live-guldbryllup-v2';
-  const FORMATS = ['one_story', 'three_stories'];
+  const STORAGE_KEY = 'hl-arstalsquiz-v1';
 
-  function clone(value) {
-    return JSON.parse(JSON.stringify(value));
+  function clone(v) {
+    return JSON.parse(JSON.stringify(v));
   }
 
-  function isObject(value) {
-    return value && typeof value === 'object' && !Array.isArray(value);
+  function isObj(v) {
+    return v && typeof v === 'object' && !Array.isArray(v);
   }
 
-  function makeInitialState(data) {
-    const firstCase = data.cases[0];
+  function normalizeData(data, seed) {
+    // Old Tre-ting format has 'cases' but no 'categories' — migrate to seed
+    if (!isObj(data) || (!Array.isArray(data.categories) && data.cases)) {
+      console.log('[HL] Gammel format fundet — bruger seed-data');
+      const base = clone(seed);
+      if (Array.isArray(data?.teams) && data.teams.length) {
+        base.teams = data.teams.map(function (t, i) {
+          return { id: t.id || ('team-' + (i + 1)), name: t.name || ('Hold ' + (i + 1)), score: Number(t.score) || 0 };
+        });
+      }
+      return base;
+    }
+
+    const next = clone(data);
+    const base = clone(seed);
+
+    next.event = Object.assign({}, base.event, isObj(next.event) ? next.event : {});
+    next.event.year = String(next.event.year || base.event.year || '2002');
+    next.event.title = String(next.event.title || base.event.title || '');
+    next.event.note = String(next.event.note || '');
+
+    const rawTeams = Array.isArray(next.teams) && next.teams.length ? next.teams : base.teams;
+    next.teams = rawTeams.filter(isObj).map(function (t, i) {
+      return { id: t.id || ('team-' + (i + 1)), name: t.name || ('Hold ' + (i + 1)), score: Number(t.score) || 0 };
+    });
+    if (!next.teams.length) next.teams = clone(base.teams);
+
+    const rawCats = Array.isArray(next.categories) && next.categories.length ? next.categories : base.categories;
+    next.categories = rawCats.filter(isObj).slice(0, 7).map(function (c, i) {
+      return {
+        id: c.id || ('cat-' + (i + 1)),
+        name: String(c.name || ('Kategori ' + (i + 1))),
+        question: String(c.question || ''),
+        answer: String(c.answer || ''),
+        explanation: String(c.explanation || ''),
+        used: Boolean(c.used),
+      };
+    });
+    if (!next.categories.length) next.categories = clone(base.categories);
+
+    const fin = isObj(next.finale) ? next.finale : {};
+    const finBase = isObj(base.finale) ? base.finale : {};
+    next.finale = {
+      question: String(fin.question || finBase.question || ''),
+      answer: String(fin.answer || finBase.answer || ''),
+      explanation: String(fin.explanation || finBase.explanation || ''),
+    };
+
+    return next;
+  }
+
+  function makeInitialState() {
     return {
-      phase: 'setup',
-      activeCaseId: firstCase ? firstCase.id : '',
-      activeTeamId: firstCase ? firstCase.activeTeamId : '',
-      stealTeamId: '',
-      visibleClueCount: 0,
-      completedCaseIds: [],
+      phase: 'intro',
+      activeTeamIndex: 0,
+      activeCategoryId: '',
       lastScoreEvent: '',
     };
   }
 
-  function normalizeOptions(item) {
-    const source = Array.isArray(item.options) && item.options.length ? item.options : [];
-    const fromClues = [0, 1, 2].map((index) => ({
-      clue: item.clues?.[index] || `Ting ${index + 1}`,
-      story: index === 0 ? item.answer || '' : '',
-      isCorrect: index === 0,
-    }));
-    return (source.length ? source : fromClues).slice(0, 3).map((option, index) => ({
-      clue: option.clue || item.clues?.[index] || `Ting ${index + 1}`,
-      story: option.story || '',
-      isCorrect: Boolean(option.isCorrect),
-    }));
-  }
-
-  function normalizeData(data, fallback) {
-    const base = clone(fallback || data || {});
-    const next = isObject(data) ? clone(data) : base;
-    const candidateTeams = Array.isArray(next.teams) && next.teams.length ? next.teams : base.teams || [];
-    const candidateCases = Array.isArray(next.cases) && next.cases.length ? next.cases : base.cases || [];
-    const sourceTeams = candidateTeams.filter(isObject).length ? candidateTeams.filter(isObject) : base.teams || [];
-    const sourceCases = candidateCases.filter(isObject).length ? candidateCases.filter(isObject) : base.cases || [];
-
-    next.event = {
-      ...(isObject(base.event) ? base.event : {}),
-      ...(isObject(next.event) ? next.event : {}),
-    };
-    next.teams = sourceTeams.map((team, index) => ({
-      id: team.id || `team-${index + 1}`,
-      name: team.name || `Hold ${index + 1}`,
-      score: Number(team.score) || 0,
-    }));
-    next.cases = sourceCases.map((item, index) => {
-      const fallbackTeamId = next.teams[index % next.teams.length]?.id || '';
-      const activeTeamId = next.teams.some((team) => team.id === item.activeTeamId) ? item.activeTeamId : fallbackTeamId;
-      const normalized = {
-        id: item.id || `case-${index + 1}`,
-        format: FORMATS.includes(item.format) ? item.format : 'one_story',
-        title: item.title || `Case ${index + 1}`,
-        activeTeamId,
-        storyOwner: item.storyOwner || '',
-        clues: [0, 1, 2].map((clueIndex) => item.clues?.[clueIndex] || ''),
-        prompt: item.prompt || '',
-        question: item.question || '',
-        answer: item.answer || '',
-        revealNote: item.revealNote || '',
-      };
-      normalized.options = normalizeOptions({ ...item, ...normalized });
-      if (!normalized.options.some((option) => option.isCorrect)) {
-        normalized.options[0].isCorrect = true;
-      }
-      return normalized;
-    });
+  function normalizeState(state, data) {
+    const phases = ['intro', 'category_board', 'question', 'reveal', 'finale', 'finished'];
+    const base = makeInitialState();
+    const next = isObj(state) ? Object.assign({}, base, state) : base;
+    if (!phases.includes(next.phase)) next.phase = 'intro';
+    next.activeTeamIndex = Math.max(0, Math.min(data.teams.length - 1, Number(next.activeTeamIndex) || 0));
+    if (!data.categories.some(function (c) { return c.id === next.activeCategoryId; })) {
+      next.activeCategoryId = '';
+    }
+    next.lastScoreEvent = String(next.lastScoreEvent || '');
     return next;
   }
 
@@ -82,182 +86,147 @@
     try {
       const raw = window.localStorage.getItem(STORAGE_KEY);
       return raw ? JSON.parse(raw) : null;
-    } catch (error) {
+    } catch (e) {
       return null;
     }
   }
 
   function createStore(seed) {
     const saved = load();
-    const data = normalizeData(saved?.data, seed);
-    const state = normalizeState(saved?.state, data);
-    return { data, state };
-  }
-
-  function normalizeState(state, data) {
-    const allowedPhases = ['setup', 'active_team', 'steal', 'reveal', 'finished'];
-    const next = isObject(state) ? { ...makeInitialState(data), ...state } : makeInitialState(data);
-    if (!allowedPhases.includes(next.phase)) next.phase = 'setup';
-    if (!data.cases.some((item) => item.id === next.activeCaseId)) {
-      next.activeCaseId = data.cases[0]?.id || '';
-    }
-    const activeCase = data.cases.find((item) => item.id === next.activeCaseId);
-    if (!data.teams.some((team) => team.id === next.activeTeamId)) {
-      next.activeTeamId = activeCase?.activeTeamId || data.teams[0]?.id || '';
-    }
-    if (!data.teams.some((team) => team.id === next.stealTeamId)) next.stealTeamId = '';
-    next.visibleClueCount = Math.max(0, Math.min(3, Number(next.visibleClueCount) || 0));
-    if (next.phase === 'steal' || next.phase === 'reveal') next.visibleClueCount = 3;
-    if (!Array.isArray(next.completedCaseIds)) next.completedCaseIds = [];
-    next.completedCaseIds = next.completedCaseIds.filter((id) => data.cases.some((item) => item.id === id));
-    next.lastScoreEvent = next.lastScoreEvent || '';
-    if (next.phase === 'steal' && !data.teams.some((team) => team.id !== next.activeTeamId)) {
-      next.phase = 'reveal';
-      next.lastScoreEvent = next.lastScoreEvent || 'Ingen andre hold kan stjæle point.';
-    }
-    return next;
+    const isOldFormat = saved && saved.data && !Array.isArray(saved.data.categories);
+    const rawData = (!isOldFormat && isObj(saved && saved.data)) ? saved.data : null;
+    const data = normalizeData(rawData, seed);
+    const state = normalizeState(saved && saved.state, data);
+    return { data: data, state: state };
   }
 
   function save(store) {
     try {
       window.localStorage.setItem(STORAGE_KEY, JSON.stringify(store));
-    } catch (error) {
-      // The app still works for one session if storage is unavailable.
+    } catch (e) {
+      // Storage unavailable — session still works.
     }
   }
 
   function reset(seed) {
-    const data = normalizeData(seed, seed);
-    return { data, state: makeInitialState(data) };
-  }
-
-  function activeCase(store) {
-    return store.data.cases.find((item) => item.id === store.state.activeCaseId) || store.data.cases[0];
+    const data = normalizeData(clone(seed), seed);
+    return { data: data, state: makeInitialState() };
   }
 
   function activeTeam(store) {
-    return store.data.teams.find((team) => team.id === store.state.activeTeamId) || store.data.teams[0];
+    return store.data.teams[store.state.activeTeamIndex] || store.data.teams[0];
   }
 
   function teamById(store, id) {
-    return store.data.teams.find((team) => team.id === id);
+    return store.data.teams.find(function (t) { return t.id === id; });
+  }
+
+  function activeCategory(store) {
+    return store.data.categories.find(function (c) { return c.id === store.state.activeCategoryId; }) || null;
+  }
+
+  function availableCategories(store) {
+    return store.data.categories.filter(function (c) { return !c.used; });
   }
 
   function startShow(store) {
-    const first = store.data.cases[0];
-    if (!first) return store;
-    store.state.phase = 'active_team';
-    store.state.activeCaseId = first.id;
-    store.state.activeTeamId = first.activeTeamId;
-    store.state.stealTeamId = '';
-    store.state.visibleClueCount = 0;
-    store.state.completedCaseIds = [];
+    store.data.teams.forEach(function (t) { t.score = 0; });
+    store.data.categories.forEach(function (c) { c.used = false; });
+    store.state.phase = 'intro';
+    store.state.activeTeamIndex = 0;
+    store.state.activeCategoryId = '';
+    store.state.lastScoreEvent = '';
+    return store;
+  }
+
+  function startCategories(store) {
+    store.state.phase = 'category_board';
+    return store;
+  }
+
+  function selectCategory(store, id) {
+    const cat = store.data.categories.find(function (c) { return c.id === id && !c.used; });
+    if (!cat) return store;
+    store.state.activeCategoryId = id;
+    store.state.phase = 'question';
     store.state.lastScoreEvent = '';
     return store;
   }
 
   function markCorrect(store) {
-    store.state.visibleClueCount = 3;
     const team = activeTeam(store);
     if (team) {
       team.score += 2;
-      store.state.lastScoreEvent = `${team.name} +2`;
+      store.state.lastScoreEvent = team.name + ' +2';
     }
+    const cat = activeCategory(store);
+    if (cat) cat.used = true;
     store.state.phase = 'reveal';
-    store.state.stealTeamId = '';
-    markCompleted(store);
     return store;
   }
 
   function markWrong(store) {
-    store.state.visibleClueCount = 3;
-    const hasStealTeam = store.data.teams.some((team) => team.id !== store.state.activeTeamId);
-    if (!hasStealTeam) {
-      store.state.phase = 'reveal';
-      store.state.stealTeamId = '';
-      store.state.lastScoreEvent = 'Forkert. Ingen steal mulig.';
-      markCompleted(store);
-      return store;
-    }
-    store.state.phase = 'steal';
-    store.state.lastScoreEvent = 'Forkert. Steal åbent.';
+    const cat = activeCategory(store);
+    if (cat) cat.used = true;
+    store.state.lastScoreEvent = 'Forkert';
+    store.state.phase = 'reveal';
     return store;
   }
 
-  function awardSteal(store, teamId) {
+  function awardBonus(store, teamId) {
     const team = teamById(store, teamId);
     if (team) {
       team.score += 1;
-      store.state.stealTeamId = teamId;
-      store.state.lastScoreEvent = `${team.name} +1`;
+      store.state.lastScoreEvent = team.name + ' bonus +1';
     }
-    store.state.phase = 'reveal';
-    store.state.visibleClueCount = 3;
-    markCompleted(store);
-    return store;
-  }
-
-  function reveal(store) {
-    store.state.phase = 'reveal';
-    store.state.visibleClueCount = 3;
-    markCompleted(store);
-    return store;
-  }
-
-  function showNextClue(store) {
-    const current = Math.max(0, Math.min(3, Number(store.state.visibleClueCount) || 0));
-    store.state.visibleClueCount = Math.min(3, current + 1);
     return store;
   }
 
   function nextTurn(store) {
-    const currentIndex = store.data.cases.findIndex((item) => item.id === store.state.activeCaseId);
-    const next = store.data.cases[currentIndex + 1];
-    if (!next) {
-      store.state.phase = 'finished';
-      store.state.stealTeamId = '';
-      store.state.visibleClueCount = 0;
+    const available = availableCategories(store);
+    store.state.activeCategoryId = '';
+    store.state.lastScoreEvent = '';
+    if (!available.length) {
+      store.state.phase = 'finale';
       return store;
     }
-    store.state.phase = 'active_team';
-    store.state.activeCaseId = next.id;
-    store.state.activeTeamId = next.activeTeamId;
-    store.state.stealTeamId = '';
-    store.state.visibleClueCount = 0;
-    store.state.lastScoreEvent = '';
+    store.state.activeTeamIndex = (store.state.activeTeamIndex + 1) % store.data.teams.length;
+    store.state.phase = 'category_board';
     return store;
   }
 
-  function finish(store) {
-    store.state.phase = 'finished';
-    store.state.stealTeamId = '';
-    store.state.visibleClueCount = 0;
-    return store;
-  }
-
-  function markCompleted(store) {
-    const id = store.state.activeCaseId;
-    if (id && !store.state.completedCaseIds.includes(id)) {
-      store.state.completedCaseIds.push(id);
+  function markFinaleCorrect(store, teamId) {
+    const team = teamById(store, teamId);
+    if (team) {
+      team.score += 3;
+      store.state.lastScoreEvent = team.name + ' finale +3';
     }
+    store.state.phase = 'finished';
+    return store;
+  }
+
+  function finishGame(store) {
+    store.state.phase = 'finished';
+    return store;
   }
 
   window.HLGame = {
-    STORAGE_KEY,
-    FORMATS,
-    createStore,
-    save,
-    reset,
-    makeInitialState,
-    activeCase,
-    activeTeam,
-    startShow,
-    markCorrect,
-    markWrong,
-    awardSteal,
-    reveal,
-    showNextClue,
-    nextTurn,
-    finish,
+    STORAGE_KEY: STORAGE_KEY,
+    createStore: createStore,
+    save: save,
+    reset: reset,
+    activeTeam: activeTeam,
+    teamById: teamById,
+    activeCategory: activeCategory,
+    availableCategories: availableCategories,
+    startShow: startShow,
+    startCategories: startCategories,
+    selectCategory: selectCategory,
+    markCorrect: markCorrect,
+    markWrong: markWrong,
+    awardBonus: awardBonus,
+    nextTurn: nextTurn,
+    markFinaleCorrect: markFinaleCorrect,
+    finishGame: finishGame,
   };
 })();

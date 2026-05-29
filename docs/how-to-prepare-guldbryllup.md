@@ -103,6 +103,9 @@ finished, printable show.
    8. Award `Stjæl +1` to another team.
    9. Confirm `Reveal` and `Næste` feel natural.
 
+Use `Bonus +1` during the show if a team earns an extra point for a strong
+story, explanation, or room reaction.
+
 ## Verification
 
 Before leaving for the party, confirm:

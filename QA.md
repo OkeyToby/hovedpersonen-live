@@ -49,6 +49,10 @@ review.
       and confirm no score changes.
 - [ ] Advance through all cases and confirm the finished scoreboard appears.
 - [ ] Click `Afslut` from the show and confirm the final scoreboard appears.
+- [ ] Confirm the live score stays visible in the show view and marks the active
+      team.
+- [ ] Click `Bonus +1` for a team and confirm the score updates without changing
+      the current clue, steal, or reveal phase.
 
 ## Print
 

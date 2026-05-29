@@ -48,6 +48,7 @@ The show view is the primary product moment. It must feel like a TV quiz graphic
 
 - Full-screen or near-full-screen stage.
 - Large active team.
+- Persistent live score with active-team and leader emphasis.
 - Case number and format in a top rail.
 - Three objects/clues as the visual anchor, revealed one at a time by the host.
 - Current question or story prompt centered and readable.
@@ -105,7 +106,7 @@ Use when the three things each point to a possible story, but only one is the ri
   - Use for forms, controls, labels, and dense preparation screens.
   - Rationale: practical, readable, and less anonymous than default system UI.
 - **Data / scores:** `IBM Plex Mono` or `JetBrains Mono`.
-  - Use sparingly for case numbers, score deltas, and running order.
+  - Use sparingly for case numbers, live score, score deltas, and running order.
   - Must use tabular numerals where possible.
 - **Fallback:** `Georgia` for display, `Segoe UI` for body, `Consolas` for data when offline.
 - **Do not use as primary:** Inter, Roboto, Arial, Helvetica, Open Sans, Lato, Montserrat, Poppins, Space Grotesk.

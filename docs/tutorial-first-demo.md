@@ -61,7 +61,8 @@ Click `Start show`.
 5. Click `Næste`.
 6. On the next case, reveal all three options, then click `Forkert`.
 7. Award `Stjæl +1` to another team.
-8. Click `Næste` until the scoreboard appears.
+8. Award `Bonus +1` to one team from the live score panel.
+9. Click `Næste` until the scoreboard appears.
 
 ## Step 5: Check Print
 

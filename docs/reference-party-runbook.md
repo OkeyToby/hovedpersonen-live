@@ -67,6 +67,7 @@ finished
 | `Rigtigt +2` | Active team gets 2 points. | `reveal` |
 | `Forkert` with other teams | No immediate points. | `steal` |
 | `Stjæl +1` | Stealing team gets 1 point. | `reveal` |
+| `Bonus +1` | Host gives a team an extra point. | Current phase stays unchanged |
 | `Reveal` | No score change. | `reveal` |
 
 If there is only one team, a wrong answer goes directly to reveal because no

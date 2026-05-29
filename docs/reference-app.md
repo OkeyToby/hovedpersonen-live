@@ -77,7 +77,7 @@ The app stores one local object with:
 | Surface | Rendered by | Purpose |
 |------|-------------|---------|
 | `Producer` | `producerView()` | Rundown, selected case editor, event setup, readiness, and score. |
-| `Show` | `showStage()` | Big-screen stage for active team, stepwise clue/option reveal, answer, steal, reveal, and scoreboard. |
+| `Show` | `showStage()` | Big-screen stage for active team, live score, bonus points, stepwise clue/option reveal, answer, steal, reveal, and scoreboard. |
 | `Print` | `printPreview()` | Værtark, Casekort, Rekvisitkort, and Holdark preview plus browser print action. |
 
 Advanced team and couple-role controls live inside `Hold og rolle` so the
@@ -109,6 +109,8 @@ three.
 
 - Active team correct answer: `+2`.
 - Steal answer: `+1`.
+- Host bonus: `+1`, available from the live score panel at any point in the
+  show.
 - Reveal without point: no score change.
 
 ## Persistence

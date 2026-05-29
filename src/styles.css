@@ -527,6 +527,7 @@ textarea { min-height: 72px; resize: vertical; line-height: 1.4; }
 .cat-board-count-5 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .cat-board-count-6 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .cat-board-count-7 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.cat-board-count-7 .cat-tile:last-child { grid-column: span 2; }
 
 .cat-tile {
   min-height: clamp(80px, 12vh, 140px);

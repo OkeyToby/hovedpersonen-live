@@ -541,12 +541,20 @@ textarea { min-height: 72px; resize: vertical; line-height: 1.4; }
   font-weight: 900;
   letter-spacing: 0;
   cursor: pointer;
-  transition: background 0.1s, border-color 0.1s;
+  transition: filter 0.1s;
 }
 
+/* Broadcast accent rotation — muted jewel tones, distinguishable at projector distance */
+.cat-tile:nth-child(7n+1) { background: #0d3d34; border-color: rgba(20, 90, 75, 0.6); }
+.cat-tile:nth-child(7n+2) { background: #18284e; border-color: rgba(35, 65, 120, 0.6); }
+.cat-tile:nth-child(7n+3) { background: #2e1a3a; border-color: rgba(75, 45, 100, 0.6); }
+.cat-tile:nth-child(7n+4) { background: #3a1520; border-color: rgba(100, 35, 55, 0.6); }
+.cat-tile:nth-child(7n+5) { background: #0f3020; border-color: rgba(20, 80, 50, 0.6); }
+.cat-tile:nth-child(7n+6) { background: #2c1808; border-color: rgba(90, 55, 20, 0.6); }
+.cat-tile:nth-child(7n+7) { background: #142440; border-color: rgba(30, 55, 95, 0.6); }
+
 .cat-tile:hover:not(:disabled) {
-  background: rgba(215, 179, 90, 0.22);
-  border-color: var(--signal);
+  filter: brightness(1.35);
 }
 
 .cat-tile:focus-visible {

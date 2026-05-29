@@ -25,32 +25,33 @@ local behaviors.
    - `Producer`
    - `Show`
    - `Print`
-   - `Rundown`
-   - `Klar til test`
+   - the `Event` panel with `Årstal` and `Titel`
+   - the `Kørsel` readiness panel
    - `Start show`
 
 3. Exercise the preparation controls.
 
-   - Change couple names and date note.
-   - Open `Hold og rolle`.
-   - Change team mode and couple role.
-   - Add or rename teams.
-   - Edit a `Tre ting, én historie` case.
-   - Edit a `Tre ting, tre historier` case and confirm one correct radio option.
+   - Change the year and title.
+   - Open the `Hold` disclosure and add or rename a team.
+   - Select a category and edit its name, question, answer, and explanation.
+   - Add a category with `Tilføj kategori` (up to 7) and remove one with `Fjern`
+     (down to 3).
+   - Edit the finale question and answer.
 
 4. Exercise the show controls.
 
-   - Start the show.
-   - Mark a correct answer.
-   - Move to the next case.
-   - Mark a wrong answer.
-   - Award steal.
-   - Reveal and finish.
+   - Click `Start show`, then `Vis kategori-board`.
+   - Pick a category and mark a correct answer (`Rigtigt +2`).
+   - Click `Næste` and confirm the turn rotates.
+   - Pick another category and mark a wrong answer (`Forkert`).
+   - Award `Bonus +1` from the live score panel.
+   - Play through all categories and award the finale (`+3`).
+   - Confirm the scoreboard shows the winner.
 
 5. Exercise print.
 
    - Open `Print`.
-   - Confirm `Værtark`, `Casekort`, `Rekvisitkort`, and `Holdark` are visible.
+   - Confirm `Værtark` and `Holdark` are visible.
    - Click `Åbn print`.
 
 6. Run the checklist in [../QA.md](../QA.md).
@@ -60,7 +61,7 @@ local behaviors.
 The prototype is verified manually and with direct browser testing. There is no
 required package script because the app deliberately avoids a package manager.
 
-Use [how-to-prepare-guldbryllup.md](how-to-prepare-guldbryllup.md) and
+Use [how-to-prepare-show.md](how-to-prepare-show.md) and
 [reference-party-runbook.md](reference-party-runbook.md) for party-specific
 verification.
 
@@ -81,5 +82,11 @@ exist under `src/`.
 
 ### Edited data keeps coming back
 
-The app saves preparation data in `localStorage`. Use `Nulstil demo` to restore
-the seed data.
+The app saves preparation data in `localStorage` under `hl-arstalsquiz-v1`. Use
+`Nulstil demo` to restore the seed data.
+
+### A reload dropped me back to Producer
+
+It should not. The app saves the active surface, so a mid-show reload returns to
+the Show stage with the same phase and scores. If you land on Producer, you were
+already there before the reload.

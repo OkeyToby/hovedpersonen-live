@@ -1,6 +1,6 @@
 # App Reference
 
-This reference describes the current Hovedpersonen Live static prototype.
+This reference describes the current Hovedpersonen Live årstalsquiz prototype.
 
 ## Entry Point
 
@@ -20,139 +20,142 @@ without a local server.
 
 | File | Purpose |
 |------|---------|
-| `src/content.js` | Seed golden-wedding event, teams, and `Tre ting` cases. |
-| `src/game.js` | Local state, phase transitions, scoring, reset, and `localStorage`. |
-| `src/app.js` | Producer/show/print rendering, escaping, form updates, and event binding. |
+| `src/content.js` | Seed year event, teams, categories, and finale (`window.HLContent.template`). |
+| `src/game.js` | Local state, phase transitions, scoring, reset, and `localStorage` (`window.HLGame`). |
+| `src/app.js` | Producer/Show/Print rendering, escaping, form updates, and event binding. |
 | `src/styles.css` | Producer, show, responsive, and print styles. |
 
 ## Data Shape
 
-The app stores one local object with:
+The app saves one local object to `localStorage`:
 
 | Key | Purpose |
 |-----|---------|
-| `event` | Occasion, couple names, event note, tone, team mode, and couple role. |
-| `teams` | Team id, name, and score. |
-| `cases` | Case title, format, active team, story owner, clues/options, prompt, question, answer, and reveal note. |
-| `state` | Current phase, active case, active team, steal target, visible clue count, completed cases, and latest score event. |
+| `data` | The editable show: `event`, `teams`, `categories`, `finale`. |
+| `state` | Runtime: current phase, active team, active category, latest score event. |
+| `view` | The active surface (`producer`, `show`, or `print`), so a reload keeps the host on the same surface. |
 
 ### Event
 
 | Field | Type | Default | Purpose |
 |-------|------|---------|---------|
-| `occasion` | string | `Guldbryllup` | Label shown in the header and print sheets. |
-| `coupleA` | string | `Kirsten` | First honoree name. |
-| `coupleB` | string | `Poul` | Second honoree name. |
-| `date` | string | `Næste weekend` | Event date or short host note. |
-| `tone` | string | `Familievenlig` | Preparation note for the host. |
-| `teamMode` | string | `bordhold` | One of `bordhold`, `brudgom`, or `frit`. |
-| `coupleRole` | string | `reveal-jury` | One of `reveal-jury`, `helpers`, or `own-team`. |
+| `year` | string | `2002` | The year the room is guessing. Shown in the header, stage rails, and print. |
+| `title` | string | `Hvilket år spiller vi?` | Headline shown on the intro stage and event summary. |
+| `note` | string | empty | Free host note. Not shown on the show stage. |
 
 ### Team
 
 | Field | Type | Purpose |
 |-------|------|---------|
-| `id` | string | Stable local identifier used by cases and state. |
-| `name` | string | Team name shown in setup, stage, print sheets, and scoring. |
+| `id` | string | Stable local identifier used by state, bonus, and finale actions. |
+| `name` | string | Team name shown in setup, stage, live score, and print sheets. |
 | `score` | number | Manual score. `Start show` resets all scores to `0`. |
 
-### Case
+### Category
 
 | Field | Type | Purpose |
 |-------|------|---------|
-| `id` | string | Stable local identifier for the case. |
-| `format` | string | `one_story` or `three_stories`. |
-| `title` | string | Short case title shown to the active team and print sheets. |
-| `activeTeamId` | string | Team that answers this case first. |
-| `storyOwner` | string | Guest who tells the story. |
-| `clues` | string[3] | The three things, objects, or pictures. |
-| `options` | object[3] | A/B/C option stories for `three_stories`, including the correct option. |
-| `prompt` | string | Host note for calling up the story owner. |
-| `question` | string | Question shown to the active team. |
+| `id` | string | Stable local identifier for the category tile. |
+| `name` | string | Short category label shown on the board tile and editor row. |
+| `question` | string | Question read to the active team. |
 | `answer` | string | Correct answer shown during reveal. |
-| `revealNote` | string | Comment shown during reveal and printed on the host sheet. |
+| `explanation` | string | Optional context shown on reveal and printed on the host sheet. |
+| `used` | boolean | Set `true` once played. Used tiles lock globally and cannot be picked again. |
+
+The app keeps a minimum of 3 and a maximum of 7 categories.
+
+### Finale
+
+| Field | Type | Purpose |
+|-------|------|---------|
+| `question` | string | The deciding "which year" question. |
+| `answer` | string | The correct year. |
+| `explanation` | string | Optional host note shown on the finale stage and host sheet. |
 
 ## App Surfaces
 
 | Surface | Rendered by | Purpose |
-|------|-------------|---------|
-| `Producer` | `producerView()` | Rundown, selected case editor, event setup, readiness, and score. |
-| `Show` | `showStage()` | Big-screen stage for active team, live score, bonus points, stepwise clue/option reveal, answer, steal, reveal, and scoreboard. |
-| `Print` | `printPreview()` | Værtark, Casekort, Rekvisitkort, and Holdark preview plus browser print action. |
+|---------|-------------|---------|
+| `Producer` | `producerView()` | Event setup, readiness, category editor, and finale editing. |
+| `Show` | `showStage()` | Big-screen stages for intro, category board, question, reveal, finale, and scoreboard, with live score and bonus controls. |
+| `Print` | `printPreview()` | Host sheet and team sheets preview, plus a browser print action. |
 
-Advanced team and couple-role controls live inside `Hold og rolle` so the
-default table-team path stays simple.
+Team editing lives inside the `Hold` disclosure so the default setup stays
+simple. The readiness panel counts:
 
-The readiness checklist counts:
-
-- cases with story owner, question, and answer
-- cases with three filled clues/options
-- current number of teams
-- print sheet types
+- number of teams
+- categories created (`X/7`)
+- categories with both a question and an answer
 
 ## Game Phases
 
 | Phase | Meaning |
 |-------|---------|
-| `setup` | Editable preparation before the show starts. |
-| `active_team` | Current team gets the case and answers first. |
-| `steal` | Other teams can steal after a wrong answer. |
-| `reveal` | Correct answer, story owner context, and reveal note are shown. |
-| `finished` | Final scoreboard is shown. |
-
-Within `active_team`, `visibleClueCount` controls whether zero, one, two, or
-three clues/options are visible. The host advances it with `Vis ting 1` and
-`Vis næste ting`. Answer and reveal controls appear only when the count reaches
-three.
+| `intro` | Title card with the year. Host clicks `Vis kategori-board` to begin. |
+| `category_board` | Active team picks an unused category tile. |
+| `question` | The picked category's question is shown to the active team. |
+| `reveal` | Answer and optional explanation are shown after correct/wrong. |
+| `finale` | All categories are used; one deciding "which year" question remains. |
+| `finished` | Final scoreboard with the winner. |
 
 ## Scoring
 
-- Active team correct answer: `+2`.
-- Steal answer: `+1`.
-- Host bonus: `+1`, available from the live score panel at any point in the
-  show.
-- Reveal without point: no score change.
+- Correct answer: `+2` to the active team.
+- Bonus: `+1`, available from the live score panel at any point in the show.
+- Finale winner: `+3`.
+- Wrong answer or reveal without a point: no score change, but the category is
+  still marked used.
 
 ## Persistence
 
-Preparation data is saved to `localStorage` under:
+Show data, runtime state, and the active view are saved to `localStorage` under:
 
 ```text
-hovedpersonen-live-guldbryllup-v2
+hl-arstalsquiz-v1
 ```
 
-`Nulstil demo` clears the current in-memory store back to the seed template and
-saves that reset state.
+`Nulstil demo` clears the in-memory store back to the seed template and saves
+that reset state.
 
-Saved data is normalized at startup. Missing teams, cases, clue entries, option
-entries, phase values, and active ids are repaired against the seed template
-where possible.
+Saved data is normalized at startup. Missing teams, categories, finale fields,
+phase values, and active ids are repaired against the seed template where
+possible. Data saved in the old `Tre ting` format (an object with `cases` and no
+`categories`) is detected and replaced with the årstalsquiz seed, preserving any
+existing team names and ids.
 
 ## Rendering and Escaping
 
 `src/app.js` renders HTML strings into `#root`. All user-controlled values pass
-through `escapeHtml()` before they enter markup. This includes names, teams,
-clues, option stories, prompts, questions, answers, reveal notes, print sheets,
-and score labels.
+through `esc()` before they enter markup. This includes the year, title, team
+names and scores, category names, questions, answers, explanations, finale
+fields, and print sheets.
 
 Event handling is attribute-driven:
 
 | Attribute | Used for |
 |-----------|----------|
-| `data-kind` | Distinguishes event, team, case, clue, and option field updates. |
+| `data-kind` | Distinguishes `event`, `team`, `cat`, and `finale` field updates. |
 | `data-field` | Names the object field to update. |
-| `data-index` | Finds the team or case being edited. |
-| `data-action` | Dispatches host actions such as `view`, `start`, `show-clue`, `correct`, `wrong`, `steal`, `next`, `finish`, and `print`. |
+| `data-index` | Finds the team or category being edited. |
+| `data-cat-id` | Identifies the category for selection or removal. |
+| `data-team-id` | Identifies the team for bonus or finale awards. |
+| `data-view` | Names the surface to switch to. |
+| `data-action` | Dispatches host actions (see below). |
+
+### Actions
+
+`view`, `start`, `start-cats`, `select-cat-editor`, `select-cat-show`,
+`correct`, `wrong`, `bonus`, `next`, `finale-correct`, `finish`, `print`,
+`add-team`, `remove-team`, `add-cat`, `remove-cat`, `reset`.
 
 ## Print Surface
 
 `@media print` hides the interactive app and shows:
 
-- Værtark with case order, active team, story owner, clues/options, question,
-  answer, reveal note, and point rules.
-- Casekort with the live host prompt and question.
-- Rekvisitkort with physical object labels.
-- Holdark with answer lines and point space for each team.
+- Host sheet (`Værtark`) with the year, title, point rules, every category's
+  question/answer/explanation, and the finale.
+- Team sheets (`Holdark`) with answer lines per category, a finale line, and a
+  point box for each team.
 
 ## Known Limitations
 
@@ -163,6 +166,6 @@ Event handling is attribute-driven:
 
 ## Related
 
-- Use [how-to-prepare-guldbryllup.md](how-to-prepare-guldbryllup.md) to prepare a real show.
+- Use [how-to-prepare-show.md](how-to-prepare-show.md) to prepare a real show.
 - Use [reference-party-runbook.md](reference-party-runbook.md) for host roles,
   timing, scoring, and failure recovery.

@@ -1,86 +1,80 @@
 # Party Runbook Reference
 
-This reference describes the real-room operating plan for Hovedpersonen Live.
-Use it as a checklist when preparing, printing, and hosting the golden-wedding
+This reference describes the real-room operating plan for the Hovedpersonen Live
+årstalsquiz. Use it as a checklist when preparing, printing, and hosting the
 show.
 
 ## Roles
 
 | Role | Responsibility | Default |
 |------|----------------|---------|
-| Entertainment guest | Prepares cases, runs the app, reads host notes, manages points. | You |
-| Couple | Adds reveal comments, confirms answers, acts as jury. | `Reveal og jury` |
-| Story owner | Comes up and tells one short story or reads the three options. | Selected guests |
-| Active team | Answers the current case first. | Assigned per case |
-| Other teams | Can steal after a wrong answer. | All non-active teams |
+| Host | Prepares categories, runs the app, reads questions, manages points. | You |
+| Active team | Picks a category and answers first. | Rotates each turn |
+| Other teams | Watch, then compete in the finale. | All non-active teams |
+| Jury | Judges open questions (e.g. `Top 3`) where the answer is not fixed. | Host or couple |
 
 ## Preparation Timeline
 
 | Time | Task | Done when |
 |------|------|-----------|
-| 7-5 days before | Ask 3-5 guests for safe stories. | Each story has a guest and one memory. |
-| 4-3 days before | Choose three things, photos, or option stories per case. | The host can show or name each one in order. |
-| 2 days before | Enter teams, cases, questions, answers, and reveal notes. | Reload keeps the prepared content. |
-| 1 day before | Print Værtark, Casekort, Rekvisitkort, and Holdark. | Paper layer is ready. |
-| Party day | Test screen, browser zoom, and first case. | `Start show` is readable from the room. |
+| 5-7 days before | Pick the year and draft 3-7 category questions. | Each category has a question and a clear answer. |
+| 3-4 days before | Write the finale "which year" question and answer. | The finale is answerable from the category hints. |
+| 2 days before | Enter teams, categories, and the finale in the app. | Reload keeps the prepared content. |
+| 1 day before | Print the host sheet and team sheets. | Paper layer is ready. |
+| Party day | Test screen, browser zoom, and the intro stage. | The year is readable from the room. |
 
-## Case Fields
+## Category Fields
 
 | Field | Use it for | Good example |
 |-------|------------|--------------|
-| `Format` | Choose `Tre ting, én historie` or `Tre ting, tre historier`. | `Tre ting, tre historier` |
-| `Titel` | Short name for the case. | `Første besøg i køkkenet` |
-| `Aktivt hold` | Team that answers first. | `Bord 1` |
-| `Fortæller` | Guest who comes up or owns the story. | `Tobias` |
-| `Ting 1-3` | Objects, clues, or pictures for one-story cases. | `Køleskabsmagnet` |
-| `A/B/C historie` | Option stories for three-story cases. | `Han åbnede køleskabet.` |
-| `Værtsnote` | What the host says before the story. | `Tobias kommer op...` |
-| `Spørgsmål` | The question the team answers. | `Hvad gjorde Tobias først?` |
-| `Korrekt svar` | Answer shown in reveal. | `Han åbnede køleskabet.` |
-| `Reveal-note` | Landing note or memory comment. | `Direkte ind i familien og direkte i køleskabet.` |
+| `Navn` | Short category label on the board tile. | `Musik` |
+| `Spørgsmål` | The question the active team answers. | `Hvem udgav "The Eminem Show" i 2002?` |
+| `Svar` | Answer shown in reveal. | `Eminem` |
+| `Forklaring` | Optional landing note or extra context. | `Årets bedst sælgende album på verdensplan.` |
 
 ## Show Loop
 
 ```text
 Producer
   -> Start show
-Show / active_team
-  -> Vis ting 1
-  -> Vis næste ting
-  -> Vis næste ting
-  -> Rigtigt +2     -> reveal
-  -> Forkert        -> steal
-  -> Reveal         -> reveal
-steal
-  -> Stjæl +1       -> reveal
+Show / intro
+  -> Vis kategori-board
+category_board
+  -> pick a category tile
+question
+  -> Rigtigt +2        -> reveal
+  -> Forkert           -> reveal
 reveal
-  -> Næste          -> next active_team or finished
+  -> Næste             -> next team's category_board, or finale when none left
+finale
+  -> select winning team (+3)  -> finished
 finished
   -> Print or Start forfra
 ```
+
+`Bonus +1` and `Afslut` are available throughout the show from the live score
+panel and host controls.
 
 ## Scoring
 
 | Action | Score change | Next phase |
 |--------|--------------|------------|
-| `Vis ting 1` / `Vis næste ting` | No score change. | `active_team` |
-| `Rigtigt +2` | Active team gets 2 points. | `reveal` |
-| `Forkert` with other teams | No immediate points. | `steal` |
-| `Stjæl +1` | Stealing team gets 1 point. | `reveal` |
+| Pick a category | No score change. | `question` |
+| `Rigtigt +2` | Active team gets 2 points; category locks. | `reveal` |
+| `Forkert` | No points; category still locks. | `reveal` |
 | `Bonus +1` | Host gives a team an extra point. | Current phase stays unchanged |
-| `Reveal` | No score change. | `reveal` |
+| `Næste` | No score change; turn rotates. | `category_board` or `finale` |
+| `Finale` winner | Chosen team gets 3 points. | `finished` |
 
-If there is only one team, a wrong answer goes directly to reveal because no
-other team can steal.
+Categories lock globally once played, so each is used exactly once. The turn
+rotates to the next team after every reveal until all categories are used.
 
 ## Print Pack
 
 | Sheet | Audience | Includes |
 |-------|----------|----------|
-| `Værtark` | Entertainment guest | Case order, active team, story owner, clues/options, question, answer, reveal note, point rules. |
-| `Casekort` | Host | Host prompt and live question for each case. |
-| `Rekvisitkort` | Host or helpers | Three things or labels per case. |
-| `Holdark` | Teams | Case titles, answer lines, and point space. |
+| `Værtark` | Host | Year, title, point rules, every category's question/answer/explanation, and the finale. |
+| `Holdark` | Teams | Answer lines per category, a finale line, and a point box. |
 
 Print before leaving for the venue. The show can run from paper if the screen,
 projector, or browser setup fails.
@@ -92,31 +86,29 @@ Recommended setup:
 - One laptop on a table near the host.
 - Browser opened to `index.html`.
 - Screen or projector mirrored from the laptop.
-- Browser zoom tested so the active case is readable.
+- Browser zoom tested so the question is readable from the room.
 - Printed `Værtark` beside the laptop.
 - `Holdark` distributed before the first question.
-- Three things, photos, or labels sorted in case order.
 
-## Safety Rules
+## Safety and Fairness Rules
 
-- Use warm, family-friendly stories by default.
-- Avoid stories that depend on embarrassment, private conflict, or inside jokes
-  that most of the room cannot follow.
-- Keep the couple central as reveal/jury, not as targets.
-- If in doubt, choose the kinder version of a story.
+- Keep questions answerable from general knowledge of the year.
+- For open categories like `Top 3`, agree the judging rule before the show.
+- Award `Bonus +1` consistently so the room sees it as fair.
+- Keep the finale decisive: the team closest to the year wins `+3`.
 
 ## Failure Modes
 
 | Problem | Recovery |
 |---------|----------|
-| Browser loses prepared data | Use printed sheets or re-enter from `Værtark`. |
+| Browser loses prepared data | Re-enter from the printed `Værtark`. |
+| Accidental reload mid-show | The app restores the Show surface, phase, and scores. |
 | Screen is unreadable | Increase browser zoom or run from paper. |
-| A guest does not want to tell the story | Host reads the note and skips the guest performance. |
-| Only one team remains | Continue without steal points. |
-| The room gets restless | Skip to reveal and move to the next case. |
+| Only one team remains | The show still works; the finale is a single-team award. |
+| The room gets restless | Use `Afslut` to jump to the scoreboard. |
 
 ## Related
 
-- Prepare the content with [how-to-prepare-guldbryllup.md](how-to-prepare-guldbryllup.md).
+- Prepare the content with [how-to-prepare-show.md](how-to-prepare-show.md).
 - Learn the demo flow in [tutorial-first-demo.md](tutorial-first-demo.md).
 - Look up app state and scoring details in [reference-app.md](reference-app.md).

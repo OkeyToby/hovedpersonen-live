@@ -573,6 +573,7 @@
     }
 
     if (action === 'reset') {
+      if (!window.confirm('Nulstil til demo-data? Al forberedelse slettes.')) return;
       store = window.HLGame.reset(window.HLContent.template);
       editorCatId = store.data.categories[0] ? store.data.categories[0].id : '';
       view = 'producer';

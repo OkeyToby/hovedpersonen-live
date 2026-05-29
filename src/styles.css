@@ -42,7 +42,7 @@ button {
 button:hover, button:focus-visible,
 input:focus, textarea:focus, select:focus, summary:focus-visible {
   border-color: var(--info);
-  outline: 3px solid rgba(49, 93, 125, 0.18);
+  outline: 3px solid rgba(49, 93, 125, 0.65);
 }
 
 .primary { background: var(--stage); color: var(--stage-ink); }

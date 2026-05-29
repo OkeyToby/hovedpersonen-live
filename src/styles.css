@@ -95,7 +95,7 @@ input:focus, textarea:focus, select:focus, summary:focus-visible {
   color: var(--muted);
   font-size: 0.76rem;
   font-weight: 900;
-  letter-spacing: 0;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
 }
 

@@ -122,10 +122,15 @@
 
   function createStore(seed) {
     const saved = load();
-    const rawData = isObj(saved && saved.data) ? saved.data : null;
+    // If the bundled content is newer than what was saved, discard the saved
+    // copy entirely so the fresh seed questions/answers load. This avoids
+    // stale questions sticking around in localStorage after a content update.
+    const seedVersion = seed && seed.seedVersion;
+    const savedFresh = saved && (!seedVersion || saved.seedVersion === seedVersion) ? saved : null;
+    const rawData = isObj(savedFresh && savedFresh.data) ? savedFresh.data : null;
     const data = normalizeData(rawData, seed);
-    const state = normalizeState(saved && saved.state, data);
-    return { data: data, state: state };
+    const state = normalizeState(savedFresh && savedFresh.state, data);
+    return { data: data, state: state, seedVersion: seedVersion };
   }
 
   function save(store) {
@@ -138,7 +143,7 @@
 
   function reset(seed) {
     const data = normalizeData(clone(seed), seed);
-    return { data: data, state: makeInitialState() };
+    return { data: data, state: makeInitialState(), seedVersion: seed && seed.seedVersion };
   }
 
   function activeTeam(store) {

@@ -1,5 +1,9 @@
 (function () {
   const template = {
+    // Bump this whenever the questions/answers below change. The store will
+    // automatically discard any older saved copy in localStorage and load
+    // these fresh seed data instead — so updated content always shows.
+    seedVersion: '2026-05-30-danmark2001-29q',
     event: {
       year: '2001',
       title: 'Hvad skete der i Danmark i 2001?',

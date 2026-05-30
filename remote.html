@@ -1,0 +1,520 @@
+<!doctype html>
+<html lang="da">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <title>HL Remote</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;700&family=Source+Sans+3:wght@400;600;700;900&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0d0d0d;
+      --surface: #1a1a1a;
+      --surface2: #242424;
+      --border: #333;
+      --text: #f0f0f0;
+      --muted: #888;
+      --accent: #e8c547;
+      --success: #4caf81;
+      --danger: #e05555;
+      --info: #5599e8;
+      --radius: 12px;
+    }
+
+    html, body { height: 100%; background: var(--bg); color: var(--text); font-family: 'Source Sans 3', sans-serif; }
+
+    body { display: flex; flex-direction: column; }
+
+    /* ── TOP BAR ── */
+    .topbar {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 12px 16px; background: var(--surface); border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    .topbar .brand { font-weight: 700; font-size: 14px; letter-spacing: .04em; }
+    .topbar .phase-badge {
+      font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase;
+      background: var(--surface2); border: 1px solid var(--border); border-radius: 6px;
+      padding: 4px 10px; color: var(--muted);
+    }
+    .topbar .conn {
+      width: 8px; height: 8px; border-radius: 50%; background: var(--muted);
+      transition: background .3s;
+    }
+    .topbar .conn.ok { background: var(--success); }
+
+    /* ── SCORE BAR ── */
+    .scorebar {
+      display: flex; gap: 6px; padding: 10px 16px; background: var(--surface);
+      border-bottom: 1px solid var(--border); overflow-x: auto; flex-shrink: 0;
+    }
+    .team-chip {
+      display: flex; align-items: center; gap: 8px;
+      background: var(--surface2); border: 1px solid var(--border); border-radius: 8px;
+      padding: 6px 12px; white-space: nowrap; min-width: 0; flex-shrink: 0;
+    }
+    .team-chip.active { border-color: var(--accent); background: rgba(232,197,71,.1); }
+    .team-chip .tname { font-size: 13px; font-weight: 600; }
+    .team-chip .tscore { font-family: 'IBM Plex Mono', monospace; font-size: 16px; font-weight: 700; color: var(--accent); }
+
+    /* ── MAIN AREA ── */
+    .main { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 14px; }
+
+    /* ── INFO CARD ── */
+    .info-card {
+      background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 14px 16px;
+    }
+    .info-card .label { font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; }
+    .info-card h2 { font-size: 20px; font-weight: 700; line-height: 1.2; }
+    .info-card p { font-size: 14px; color: var(--muted); margin-top: 6px; }
+    .info-card .answer { font-size: 18px; font-weight: 700; color: var(--success); margin-top: 6px; }
+
+    /* ── BUTTON GROUPS ── */
+    .btn-group { display: flex; flex-direction: column; gap: 10px; }
+    .btn-row { display: flex; gap: 10px; }
+
+    button {
+      border: none; border-radius: var(--radius); font-family: inherit;
+      font-size: 17px; font-weight: 700; cursor: pointer;
+      padding: 18px 16px; text-align: center; transition: opacity .15s, transform .1s;
+      -webkit-tap-highlight-color: transparent; user-select: none;
+      flex: 1;
+    }
+    button:active { opacity: .7; transform: scale(.97); }
+
+    .btn-success { background: var(--success); color: #fff; }
+    .btn-danger  { background: var(--danger);  color: #fff; }
+    .btn-primary { background: var(--accent);  color: #000; }
+    .btn-secondary { background: var(--surface2); color: var(--text); border: 1px solid var(--border); }
+    .btn-info    { background: var(--info);    color: #fff; }
+    .btn-bonus   { background: var(--surface2); color: var(--text); border: 1px solid var(--border); font-size: 14px; padding: 14px 10px; }
+    .btn-bonus.active-team { border-color: var(--accent); color: var(--accent); }
+
+    /* ── CATEGORY GRID ── */
+    .cat-grid {
+      display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;
+    }
+    .btn-cat {
+      background: var(--surface2); color: var(--text); border: 1px solid var(--border);
+      font-size: 15px; padding: 18px 12px; border-radius: var(--radius);
+    }
+    .btn-cat.used { opacity: .3; pointer-events: none; }
+
+    /* ── FINALE TEAM BUTTONS ── */
+    .finale-btns { display: flex; flex-direction: column; gap: 10px; }
+
+    /* ── WAITING ── */
+    .waiting { text-align: center; color: var(--muted); padding: 40px 20px; font-size: 16px; }
+    .waiting strong { display: block; font-size: 28px; color: var(--text); margin-bottom: 8px; }
+
+    /* ── SECTION LABEL ── */
+    .section-label { font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); padding: 0 2px; }
+
+    /* ── EDIT MODE ── */
+    .edit-toggle {
+      background: var(--surface2); color: var(--text); border: 1px solid var(--border);
+      border-radius: 8px; padding: 6px 12px; font-size: 16px; font-weight: 700;
+      cursor: pointer; flex: 0 0 auto;
+    }
+    .edit-toggle.active { border-color: var(--accent); color: var(--accent); }
+    .edit-card {
+      background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 12px; display: flex; flex-direction: column; gap: 10px;
+    }
+    .edit-card button { flex: 0 0 auto; }
+    .edit-label { display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: var(--muted); font-weight: 600; }
+    .edit-input {
+      width: 100%; background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 8px; color: var(--text); padding: 12px; font-family: inherit; font-size: 15px;
+    }
+    textarea.edit-input { min-height: 56px; resize: vertical; line-height: 1.35; }
+    .edit-row { display: flex; gap: 8px; align-items: center; }
+    .edit-row .edit-input { flex: 1; }
+    .edit-score { max-width: 84px; text-align: center; }
+    .edit-q {
+      background: var(--surface2); border: 1px solid var(--border); border-radius: 10px;
+      padding: 10px; display: flex; flex-direction: column; gap: 8px;
+    }
+    .edit-q .edit-input { background: var(--bg); }
+    .edit-q-head { display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: var(--muted); font-weight: 700; }
+    .btn-mini { background: var(--surface2); color: var(--text); border: 1px solid var(--border); border-radius: 8px; padding: 12px; font-size: 14px; font-weight: 700; }
+    .btn-mini-danger { background: transparent; color: var(--danger); border: 1px solid var(--border); border-radius: 8px; padding: 8px 12px; font-size: 13px; font-weight: 700; flex: 0 0 auto; }
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <span class="brand">HL Remote</span>
+    <span class="phase-badge" id="phase-badge">—</span>
+    <button class="edit-toggle" id="edit-toggle" title="Rediger spørgsmål">✎ Rediger</button>
+    <div class="conn" id="conn-dot"></div>
+  </div>
+  <div class="scorebar" id="scorebar"></div>
+  <div class="main" id="main"></div>
+
+  <script src="/src/game.js"></script>
+  <script src="/src/content.js"></script>
+  <script>
+  (function () {
+    let store = null;
+    let pollTimer = null;
+    let lastTs = null;
+    let editing = false;
+
+    function esc(v) {
+      return String(v == null ? '' : v)
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    }
+
+    // ── SYNC ──────────────────────────────────────────────────────────
+    function pushState() {
+      if (!store) return;
+      const payload = JSON.parse(JSON.stringify(store));
+      payload._ts = Date.now();
+      lastTs = payload._ts;
+      fetch('/state', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      }).catch(function () {});
+    }
+
+    function pollState() {
+      fetch('/state')
+        .then(function (r) { return r.json(); })
+        .then(function (res) {
+          document.getElementById('conn-dot').className = 'conn ok';
+          // While editing, don't let incoming server state clobber the form
+          // (it would wipe what's being typed and lose focus).
+          if (editing) return;
+          if (res.ok && res.state) {
+            const s = res.state;
+            if (!lastTs || s._ts > lastTs) {
+              lastTs = s._ts;
+              store = s;
+              render();
+            }
+          }
+        })
+        .catch(function () {
+          document.getElementById('conn-dot').className = 'conn';
+        })
+        .finally(function () {
+          pollTimer = setTimeout(pollState, 700);
+        });
+    }
+
+    // ── ACTIONS ───────────────────────────────────────────────────────
+    function act(fn) {
+      if (!store) return;
+      fn(store);
+      store._ts = Date.now();
+      lastTs = store._ts;
+      pushState();
+      render();
+    }
+
+    // ── RENDER ────────────────────────────────────────────────────────
+    function render() {
+      if (!store) {
+        document.getElementById('main').innerHTML = '<div class="waiting"><strong>Venter…</strong>Åbn spillet i browseren for at forbinde.</div>';
+        document.getElementById('scorebar').innerHTML = '';
+        document.getElementById('phase-badge').textContent = '—';
+        return;
+      }
+
+      const phase = store.state ? store.state.phase : 'intro';
+
+      if (editing) {
+        document.getElementById('phase-badge').textContent = 'Rediger';
+        renderScorebar();
+        document.getElementById('main').innerHTML = renderEditor();
+        bindEditor();
+        return;
+      }
+
+      document.getElementById('phase-badge').textContent = phaseLabel(phase);
+      renderScorebar();
+
+      const main = document.getElementById('main');
+      if (phase === 'intro') main.innerHTML = renderIntro();
+      else if (phase === 'category_board') main.innerHTML = renderCategoryBoard();
+      else if (phase === 'question') main.innerHTML = renderQuestion();
+      else if (phase === 'reveal') main.innerHTML = renderReveal();
+      else if (phase === 'finale') main.innerHTML = renderFinale();
+      else if (phase === 'finished') main.innerHTML = renderFinished();
+      else main.innerHTML = '<div class="waiting"><strong>' + esc(phase) + '</strong></div>';
+
+      bindButtons();
+    }
+
+    function phaseLabel(p) {
+      return { intro: 'Intro', category_board: 'Kategori-board', question: 'Spørgsmål', reveal: 'Reveal', finale: 'Finale', finished: 'Slut' }[p] || p;
+    }
+
+    function renderScorebar() {
+      const teams = store.data ? store.data.teams : [];
+      const activeTeam = store.state ? HLGame.activeTeam(store) : null;
+      document.getElementById('scorebar').innerHTML = teams.map(function (t) {
+        const active = activeTeam && t.id === activeTeam.id;
+        return '<div class="team-chip' + (active ? ' active' : '') + '">' +
+          '<span class="tname">' + esc(t.name) + '</span>' +
+          '<span class="tscore">' + esc(t.score) + '</span>' +
+        '</div>';
+      }).join('');
+    }
+
+    function bonusRow() {
+      const teams = store.data ? store.data.teams : [];
+      const activeTeam = store.state ? HLGame.activeTeam(store) : null;
+      return '<div class="section-label">Bonus +1</div>' +
+        '<div class="btn-row">' +
+        teams.map(function (t) {
+          const active = activeTeam && t.id === activeTeam.id;
+          return '<button class="btn-bonus' + (active ? ' active-team' : '') + '" data-action="bonus" data-team-id="' + esc(t.id) + '">' + esc(t.name) + '</button>';
+        }).join('') +
+        '</div>';
+    }
+
+    function renderIntro() {
+      const year = store.data ? store.data.event.year : '????';
+      return '<div class="info-card"><div class="label">Årstalsquiz</div><h2>' + esc(year) + '</h2></div>' +
+        '<div class="btn-group">' +
+          '<button class="btn-primary" data-action="start-cats">Vis kategori-board</button>' +
+        '</div>';
+    }
+
+    function renderCategoryBoard() {
+      const team = HLGame.activeTeam(store);
+      const cats = store.data ? store.data.categories : [];
+      return '<div class="info-card"><div class="label">Aktiv</div><h2>' + esc(team ? team.name + ' vælger' : '—') + '</h2></div>' +
+        '<div class="section-label">Kategorier</div>' +
+        '<div class="cat-grid">' +
+          cats.map(function (c) {
+            const remaining = HLGame.remainingInCategory(c);
+            const used = remaining === 0;
+            return '<button class="btn-cat' + (used ? ' used' : '') + '" data-action="select-cat" data-cat-id="' + esc(c.id) + '">' +
+              esc(c.name) + '<br><span style="font-size:12px;opacity:.6">' + remaining + ' tilbage</span></button>';
+          }).join('') +
+        '</div>' +
+        '<div class="btn-group" style="margin-top:4px">' +
+          bonusRow() +
+          '<button class="btn-secondary" data-action="finish">Afslut show</button>' +
+        '</div>';
+    }
+
+    function renderQuestion() {
+      const team = HLGame.activeTeam(store);
+      const cat = HLGame.activeCategory(store);
+      const q = HLGame.activeQuestion(store);
+      return '<div class="info-card"><div class="label">Hold</div><h2>' + esc(team ? team.name : '—') + '</h2><p>' + esc(cat ? cat.name : '') + '</p></div>' +
+        '<div class="info-card"><div class="label">Spørgsmål</div><h2>' + esc(q ? q.question : '—') + '</h2>' +
+        (q && q.answer ? '<div class="answer" style="margin-top:8px;font-size:15px">Svar: ' + esc(q.answer) + '</div>' : '') + '</div>' +
+        '<div class="btn-group">' +
+          '<div class="btn-row">' +
+            '<button class="btn-success" data-action="correct">Rigtigt +2</button>' +
+            '<button class="btn-danger"  data-action="wrong">Forkert</button>' +
+          '</div>' +
+          bonusRow() +
+          '<button class="btn-secondary" data-action="finish">Afslut show</button>' +
+        '</div>';
+    }
+
+    function renderReveal() {
+      const q = HLGame.activeQuestion(store);
+      const scoreEvent = store.state ? store.state.lastScoreEvent : '';
+      return '<div class="info-card"><div class="label">Svar</div>' +
+        '<div class="answer">' + esc(q ? q.answer : '—') + '</div>' +
+        (q && q.explanation ? '<p>' + esc(q.explanation) + '</p>' : '') +
+        (scoreEvent ? '<p style="margin-top:10px;font-weight:700;color:var(--accent)">' + esc(scoreEvent) + '</p>' : '') +
+        '</div>' +
+        '<div class="btn-group">' +
+          '<button class="btn-primary" data-action="next">Næste tur</button>' +
+          bonusRow() +
+          '<button class="btn-secondary" data-action="finish">Afslut show</button>' +
+        '</div>';
+    }
+
+    function renderFinale() {
+      const fin = store.data ? store.data.finale : {};
+      const teams = store.data ? store.data.teams : [];
+      return '<div class="info-card"><div class="label">Finalespørgsmål</div><h2>' + esc(fin.question || '—') + '</h2>' +
+        (fin.answer ? '<div class="answer">' + esc(fin.answer) + '</div>' : '') +
+        (fin.explanation ? '<p>' + esc(fin.explanation) + '</p>' : '') +
+        '</div>' +
+        '<div class="section-label">Vinder (Finale +3)</div>' +
+        '<div class="finale-btns">' +
+          teams.map(function (t) {
+            return '<button class="btn-info" data-action="finale-correct" data-team-id="' + esc(t.id) + '">' + esc(t.name) + ' +3</button>';
+          }).join('') +
+        '</div>' +
+        '<div class="btn-group" style="margin-top:4px">' +
+          bonusRow() +
+          '<button class="btn-secondary" data-action="finish">Afslut uden finalevinder</button>' +
+        '</div>';
+    }
+
+    function renderFinished() {
+      const teams = store.data ? store.data.teams.slice().sort(function (a, b) { return b.score - a.score; }) : [];
+      const winner = teams[0];
+      return '<div class="info-card"><div class="label">Vinder</div><h2>' + esc(winner ? winner.name : '—') + '</h2>' +
+        '<div style="margin-top:12px">' +
+          teams.map(function (t, i) {
+            return '<div style="display:flex;gap:12px;align-items:center;padding:6px 0;border-top:1px solid var(--border)">' +
+              '<span style="color:var(--muted);min-width:20px">' + (i+1) + '</span>' +
+              '<strong style="flex:1">' + esc(t.name) + '</strong>' +
+              '<span style="font-family:IBM Plex Mono,monospace;color:var(--accent)">' + esc(t.score) + ' p</span>' +
+            '</div>';
+          }).join('') +
+        '</div></div>' +
+        '<button class="btn-secondary" data-action="start">Start forfra</button>';
+    }
+
+    // ── EDIT MODE ─────────────────────────────────────────────────────
+    function editInput(kind, attrs, field, placeholder, value, isArea) {
+      const a = attrs || '';
+      if (isArea) {
+        return '<textarea class="edit-input" data-edit="' + kind + '"' + a + ' data-field="' + field + '" placeholder="' + esc(placeholder) + '">' + esc(value) + '</textarea>';
+      }
+      return '<input class="edit-input" data-edit="' + kind + '"' + a + ' data-field="' + field + '" value="' + esc(value) + '" placeholder="' + esc(placeholder) + '" />';
+    }
+
+    function renderEditor() {
+      const d = store.data;
+      let h = '';
+
+      h += '<div class="section-label">Event</div><div class="edit-card">' +
+        '<label class="edit-label"><span>Årstal</span>' + editInput('event', '', 'year', 'Årstal', d.event.year) + '</label>' +
+        '<label class="edit-label"><span>Titel</span>' + editInput('event', '', 'title', 'Titel', d.event.title) + '</label>' +
+      '</div>';
+
+      h += '<div class="section-label">Hold</div><div class="edit-card">';
+      d.teams.forEach(function (t, i) {
+        h += '<div class="edit-row">' +
+          editInput('team', ' data-index="' + i + '"', 'name', 'Holdnavn', t.name) +
+          '<input class="edit-input edit-score" type="number" data-edit="team" data-index="' + i + '" data-field="score" value="' + esc(t.score) + '" />' +
+          (d.teams.length > 1 ? '<button class="btn-mini-danger" data-action="rm-team" data-index="' + i + '">✕</button>' : '') +
+        '</div>';
+      });
+      h += '<button class="btn-mini" data-action="add-team">+ Tilføj hold</button></div>';
+
+      d.categories.forEach(function (c, ci) {
+        h += '<div class="section-label">Kategori ' + (ci + 1) + '</div><div class="edit-card">';
+        h += editInput('cat-name', ' data-cat-id="' + esc(c.id) + '"', 'name', 'Kategorinavn', c.name);
+        c.questions.forEach(function (q, qi) {
+          const at = ' data-cat-id="' + esc(c.id) + '" data-q-index="' + qi + '"';
+          h += '<div class="edit-q">' +
+            '<div class="edit-q-head"><span>Spørgsmål ' + (qi + 1) + '</span>' +
+              (c.questions.length > 1 ? '<button class="btn-mini-danger" data-action="rm-q" data-cat-id="' + esc(c.id) + '" data-q-index="' + qi + '">✕</button>' : '') +
+            '</div>' +
+            editInput('question', at, 'question', 'Spørgsmål', q.question, true) +
+            editInput('question', at, 'answer', 'Svar', q.answer) +
+            editInput('question', at, 'explanation', 'Forklaring (valgfri)', q.explanation, true) +
+          '</div>';
+        });
+        h += '<button class="btn-mini" data-action="add-q" data-cat-id="' + esc(c.id) + '">+ Tilføj spørgsmål</button>';
+        if (d.categories.length > 3) h += '<button class="btn-mini-danger" data-action="rm-cat" data-cat-id="' + esc(c.id) + '">Fjern kategori</button>';
+        h += '</div>';
+      });
+      if (d.categories.length < 7) h += '<button class="btn-secondary" data-action="add-cat">+ Tilføj kategori</button>';
+
+      h += '<div class="section-label">Finale</div><div class="edit-card">' +
+        editInput('finale', '', 'question', 'Finalespørgsmål', d.finale.question, true) +
+        editInput('finale', '', 'answer', 'Svar', d.finale.answer) +
+        editInput('finale', '', 'explanation', 'Forklaring', d.finale.explanation, true) +
+      '</div>';
+
+      h += '<button class="btn-primary" data-action="exit-edit">Færdig med at rette</button>';
+      return h;
+    }
+
+    function bindEditor() {
+      document.querySelectorAll('[data-edit]').forEach(function (el) {
+        el.addEventListener('change', onFieldChange);
+      });
+      document.querySelectorAll('[data-action]').forEach(function (el) {
+        el.addEventListener('click', onEditAction);
+      });
+    }
+
+    function onFieldChange(e) {
+      if (!store) return;
+      const el = e.target;
+      const kind = el.dataset.edit;
+      const field = el.dataset.field;
+      const d = store.data;
+      if (kind === 'event') d.event[field] = el.value;
+      else if (kind === 'finale') d.finale[field] = el.value;
+      else if (kind === 'team') {
+        const t = d.teams[Number(el.dataset.index)];
+        if (t) { if (field === 'score') t.score = Number(el.value) || 0; else t[field] = el.value; }
+      } else if (kind === 'cat-name') {
+        const c = d.categories.find(function (x) { return x.id === el.dataset.catId; });
+        if (c) c.name = el.value;
+      } else if (kind === 'question') {
+        const c = d.categories.find(function (x) { return x.id === el.dataset.catId; });
+        const q = c && c.questions[Number(el.dataset.qIndex)];
+        if (q) q[field] = el.value;
+      }
+      store._ts = Date.now();
+      lastTs = store._ts;
+      pushState();
+      renderScorebar();
+    }
+
+    function onEditAction(e) {
+      e.preventDefault();
+      const el = e.currentTarget;
+      const a = el.dataset.action;
+      if (a === 'exit-edit') { editing = false; document.getElementById('edit-toggle').classList.remove('active'); render(); return; }
+      const d = store.data;
+      if (a === 'add-team') d.teams.push({ id: 'team-' + Date.now(), name: 'Hold ' + (d.teams.length + 1), score: 0 });
+      else if (a === 'rm-team') { if (d.teams.length > 1) d.teams.splice(Number(el.dataset.index), 1); }
+      else if (a === 'add-cat') { if (d.categories.length < 7) d.categories.push({ id: 'cat-' + Date.now(), name: '', questions: [{ question: '', answer: '', explanation: '', used: false }] }); }
+      else if (a === 'rm-cat') { if (d.categories.length > 3) d.categories = d.categories.filter(function (c) { return c.id !== el.dataset.catId; }); }
+      else if (a === 'add-q') { const c = d.categories.find(function (x) { return x.id === el.dataset.catId; }); if (c) c.questions.push({ question: '', answer: '', explanation: '', used: false }); }
+      else if (a === 'rm-q') { const c = d.categories.find(function (x) { return x.id === el.dataset.catId; }); if (c && c.questions.length > 1) c.questions.splice(Number(el.dataset.qIndex), 1); }
+      else return;
+      store._ts = Date.now();
+      lastTs = store._ts;
+      pushState();
+      render();
+    }
+
+    // ── BIND BUTTONS ──────────────────────────────────────────────────
+    function bindButtons() {
+      document.querySelectorAll('[data-action]').forEach(function (el) {
+        el.addEventListener('click', function (e) {
+          e.preventDefault();
+          const action = el.dataset.action;
+
+          if (action === 'start-cats') act(function (s) { HLGame.startCategories(s); });
+          else if (action === 'select-cat') act(function (s) { HLGame.selectCategory(s, el.dataset.catId); });
+          else if (action === 'correct') act(function (s) { HLGame.markCorrect(s); });
+          else if (action === 'wrong') act(function (s) { HLGame.markWrong(s); });
+          else if (action === 'bonus') act(function (s) { HLGame.awardBonus(s, el.dataset.teamId); });
+          else if (action === 'next') act(function (s) { HLGame.nextTurn(s); });
+          else if (action === 'finale-correct') act(function (s) { HLGame.markFinaleCorrect(s, el.dataset.teamId); });
+          else if (action === 'finish') act(function (s) { HLGame.finishGame(s); });
+          else if (action === 'start') act(function (s) { HLGame.startShow(s); s.state.phase = 'intro'; });
+        });
+      });
+    }
+
+    // ── BOOT ──────────────────────────────────────────────────────────
+    document.getElementById('edit-toggle').addEventListener('click', function () {
+      if (!store) return;
+      editing = !editing;
+      document.getElementById('edit-toggle').classList.toggle('active', editing);
+      render();
+    });
+
+    render();
+    pollState();
+  })();
+  </script>
+</body>
+</html>

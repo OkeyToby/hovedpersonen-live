@@ -3,9 +3,9 @@
   "configurations": [
     {
       "name": "arstalsquiz",
-      "runtimeExecutable": "npx",
-      "runtimeArgs": ["serve", ".", "--listen", "5151"],
-      "port": 5151,
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["server.js"],
+      "port": 3333,
       "autoPort": false
     }
   ]

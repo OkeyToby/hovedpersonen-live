@@ -470,6 +470,44 @@ textarea { min-height: 72px; resize: vertical; line-height: 1.4; }
 
 .host-controls .secondary { color: var(--ink); }
 
+/* Præsentér-knap i topbaren */
+.present-btn {
+  margin-left: 12px;
+  background: var(--stage);
+  color: var(--stage-ink);
+  border-color: var(--stage);
+}
+.present-btn:hover, .present-btn:focus-visible { background: var(--stage-panel); }
+
+/* ── PRESENTATION MODE (clean audience display) ───────────── */
+.present-mode {
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  background: var(--stage);
+}
+.present-mode .top-bar { display: none; }
+.present-mode .host-controls,
+.present-mode .bonus-actions { display: none !important; }
+.present-mode .show-stage {
+  min-height: 100vh;
+  border-radius: 0;
+  box-shadow: none;
+}
+.present-exit {
+  position: fixed;
+  bottom: 14px;
+  right: 14px;
+  z-index: 50;
+  opacity: 0.12;
+  background: rgba(0, 0, 0, 0.45);
+  color: var(--stage-ink);
+  border-color: rgba(255, 248, 223, 0.3);
+  transition: opacity 0.2s;
+}
+.present-exit:hover, .present-exit:focus-visible { opacity: 1; }
+
 /* Reveal */
 
 .is-reveal .story-card {
@@ -542,6 +580,20 @@ textarea { min-height: 72px; resize: vertical; line-height: 1.4; }
   letter-spacing: 0;
   cursor: pointer;
   transition: filter 0.1s;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  text-align: center;
+}
+
+.cat-tile-count {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.8rem;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  opacity: 0.7;
 }
 
 /* Broadcast accent rotation — muted jewel tones, distinguishable at projector distance */

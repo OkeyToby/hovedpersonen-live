@@ -59,7 +59,14 @@ const server = http.createServer(function (req, res) {
   fs.readFile(filePath, function (err, data) {
     if (err) { res.writeHead(404); res.end('Not found'); return; }
     const ext = path.extname(filePath);
-    res.writeHead(200, { 'Content-Type': MIME[ext] || 'application/octet-stream' });
+    res.writeHead(200, {
+      'Content-Type': MIME[ext] || 'application/octet-stream',
+      // Always serve fresh files so updated questions/code show on reload
+      // instead of a stale cached copy.
+      'Cache-Control': 'no-cache, no-store, must-revalidate',
+      'Pragma': 'no-cache',
+      'Expires': '0',
+    });
     res.end(data);
   });
 });
